@@ -1,0 +1,32 @@
+#//Generate automatic by CMT,don't change!
+cluster0 = D
+
+cluster1 = D
+
+cluster2 = D
+
+cluster3 = D
+
+cru = N
+
+lsd = D
+
+marcro_SRAM_SIM = Y
+
+marcro_STANDCELL_SIM = Y
+
+pxp = Y
+
+spi = D
+
+uart = D
+
+xmp0 = V
+
+xmp1 = V
+
+xmp2 = V
+
+xmp3 = V
+
+zebu = N
