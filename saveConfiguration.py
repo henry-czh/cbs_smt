@@ -42,7 +42,7 @@ config cfg;
 
     return textOut
 
-def saveConfigFile(tableWidget,treeWidget):
+def saveConfigFileFromGui(tableWidget,treeWidget):
     #++++++++++++++++++++++++++++++
     # save macro value
     #++++++++++++++++++++++++++++++
@@ -62,4 +62,11 @@ def saveConfigFile(tableWidget,treeWidget):
                 textOut = textOut + '%s = %s\n' % (item_name,item_value)
         it.__iadd__(1)
 
+    return textOut
+
+def saveConfigFile(cfg_out_dict):
+    textOut = '#//Generate automatic by CMT,don\'t change!'
+    key_list = sorted(cfg_out_dict.keys(),reverse=False)
+    for key in key_list:
+        textOut = textOut + '\n' + key + ' = ' + cfg_out_dict[key] + '\n'
     return textOut

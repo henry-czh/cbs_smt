@@ -5,8 +5,10 @@ import sys
 import re
 from os import system
 
-def readConfiguration():
-    src_rf = open("test.cfg",'r')
+def readConfiguration(cfg_file,usr_cfg_file):
+    main_rf = open(cfg_file,'r')
+    usr_rf = open(usr_cfg_file,'r')
+    src_rf = main_rf.readlines()+usr_rf.readlines()
 
     cfg_dict={}
     dpd_list=[]
@@ -23,7 +25,7 @@ def readConfiguration():
     help_pattern=re.compile(r'^[ ]*?\[help\]')
     dpdon_pattern=re.compile(r'^[ ]*?\[depends on\]')
 
-    for line in src_rf.readlines():
+    for line in src_rf:
         if re.match(comment_pattern,line):
             continue
         if re.match(top_pattern,line):
@@ -65,7 +67,8 @@ def readConfiguration():
                         dpd_key_list.append({item[1]:item[2].strip('}')})
                     dpd_dict[item[0].strip('{')]=dpd_key_list
                 cfg_dict[cfg_key]['depends on'] = dpd_dict
-    src_rf.close()
+    main_rf.close()
+    usr_rf.close()
     return cfg_dict
 
 def create_dict(tdict,inst_list,module_list,hdl_path,help_info,item_name,default):
@@ -94,8 +97,8 @@ def create_dict(tdict,inst_list,module_list,hdl_path,help_info,item_name,default
         create_dict(tdict[inst_list[0]]['sub_tree'],inst_list[1:],module_list,hdl_path,help_info,item_name,default)
     return tdict
 
-def genDesignTree():
-    cfg_dict = readConfiguration()
+def genDesignTree(cfg_file,usr_cfg_file):
+    cfg_dict = readConfiguration(cfg_file,usr_cfg_file)
     tree_dict = dict()
 
     for item in cfg_dict.keys():
@@ -115,7 +118,8 @@ def genDesignTree():
     return tree_dict
 
 #create temp config database
-def genOutPutCfg(cfg_dict):
+def genOutPutCfg(cfg_file,usr_cfg_file):
+    cfg_dict = readConfiguration(cfg_file,usr_cfg_file)
     cfg_temp_dict = dict()
     for item in cfg_dict:
         if 'default' in cfg_dict[item]:
@@ -126,27 +130,43 @@ def genOutPutCfg(cfg_dict):
             if reply == QMessageBox.Yes:
                 line_num = os.system('grep -n %s ./test.cfg' % (item))
                 os.system('gvim ./test.cfg +%s' % (line_num))
-                cfg_dict = readConfiguration.readConfiguration()
+                cfg_dict = readConfiguration.readConfiguration(cfg_file,usr_cfg_file)
                 cfg_temp_dict[item] = cfg_dict[item]['default']
     return cfg_temp_dict
 
-def checkDependence(item_name,item_value,cfg_dict,cfg_temp_dict,status,has_depend,depend_info,depend_dict):
-    if 'depends on' in cfg_dict[item_name] and item_value in cfg_dict[item_name]['depends on']:
-        has_depend = 1
-        depend_list = cfg_dict[item_name]['depends on'][item_value]
-        for item in depend_list:
-            #判断是否有因依赖关系发生的默认修改
-            for k in item:
-                if k in cfg_temp_dict:
-                    if cfg_temp_dict[k] != item[k]:
-                        status = 1
-                else:
-                        status = 1
-                cfg_temp_dict[k] = item[k]
-                depend_info = depend_info + item_name + ' = ' + item_value + ' --> ' + str(item) + '\n '
-                depend_dict.update(item)
-                s,d,info,dpd_dict,tmp_dict = checkDependence(k,item[k],cfg_dict,cfg_temp_dict,status,has_depend,depend_info,depend_dict)
-                depend_info = info
+def loadExistCfg(cfg_file):
+    load_cfg_dict=dict()
+    valid_entry_pattern = re.compile('^[a-zA-Z0-9]')
+    with open(cfg_file,'r') as f:
+        for item in f.readlines():
+            if re.match(valid_entry_pattern,item):
+                item = item.strip().strip(' ').split('=')
+                load_cfg_dict[item[0].strip()] = item[1].strip()
+    return load_cfg_dict
+
+def checkDependence(init_key_list,item_name,item_value,cfg_dict,cfg_temp_dict,status,has_depend,depend_info,depend_dict):
+    if 'depends on' in cfg_dict[item_name] :
+        if item_value in cfg_dict[item_name]['depends on']:
+            has_depend = 1
+            depend_list = cfg_dict[item_name]['depends on'][item_value]
+            for item in depend_list:
+                #判断是否有因依赖关系发生的默认修改
+                for k in item:
+                    if k in cfg_temp_dict:
+                        if cfg_temp_dict[k] != item[k]:
+                            status = 1
+                    else:
+                            status = 1
+                    cfg_temp_dict[k] = item[k]
+                    depend_info = depend_info + item_name + ' = ' + item_value + ' --> ' + str(item) + '\n '
+                    depend_dict.update(item)
+                    init_key_list.append(k)
+                    if k in init_key_list:
+                        info=depend_info
+                    else:
+                        #print (k,init_item,item_name)
+                        s,d,info,dpd_dict,tmp_dict = checkDependence(init_key_list,k,item[k],cfg_dict,cfg_temp_dict,status,has_depend,depend_info,depend_dict)
+                    depend_info = info
     return status,has_depend,depend_info,depend_dict,cfg_temp_dict
 
 def checkConflict(item_name,item_value,cfg_dict,cfg_temp_dict,depend_dict,conflict,conflict_info):
@@ -165,16 +185,19 @@ def checkConflict(item_name,item_value,cfg_dict,cfg_temp_dict,depend_dict,confli
                             conflict_info = conflict_info + '%s = %s need %s = %s ,but you want to change %s to %s .\n ' % (item,cfg_temp_dict[item],key,be_depend_dict[key],key,value)
     return conflict,conflict_info
 
-#def create_dpd_link(link_dict,cfg_dict,item_name):
-#    link_dict[item_name]=dict()
-#    link_dict[item_name][]
-#def genDependLink():
-#    cfg_dict = readConfiguration()
-#    depend_link_dict = dict()
-#
-#    for item in cfg_dict.keys():
-#        if 'depends on' in cfg_dict[item]:
-#            depend_link_dict = create_dpd_link(depend_link_dict,cfg_dict,item)
+def checkDefaultSet(cfg_dict,cfg_out_dict):
+    for key,value in cfg_out_dict.items():
+        #有依赖关系则打印提醒，有静默修改则发出警告
+        status,has_depend,depend_info,depend_dict,cfg_temp_dict = checkDependence([key],key,value,cfg_dict,cfg_out_dict,0,0,' ',{})
+        #若无冲突，可正常更新配置；否则，取消本次修改，给出错误提示；可能发生在两个地方，1是当前修改项，2是静默修改项，均需要做check；
+        conflict,conflict_info = checkConflict(key,value,cfg_dict,cfg_out_dict,depend_dict,0,' ')
+        if status:
+            return 1,depend_info
+        elif conflict:
+            return 1,conflict_info
+        else:
+            continue
+    return 0,''
 
 if __name__=='__main__':
     #readConfiguration()
