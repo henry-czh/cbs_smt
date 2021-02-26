@@ -4,6 +4,7 @@ import os
 import sys
 import re
 from os import system
+from PyQt5.QtWidgets import *
 
 def readConfiguration(cfg_file,usr_cfg_file):
     main_rf = open(cfg_file,'r')
@@ -144,32 +145,36 @@ def loadExistCfg(cfg_file):
                 load_cfg_dict[item[0].strip()] = item[1].strip()
     return load_cfg_dict
 
-def checkDependence(init_key_list,item_name,item_value,cfg_dict,cfg_temp_dict,status,has_depend,depend_info,depend_dict):
-    if 'depends on' in cfg_dict[item_name] :
-        if item_value in cfg_dict[item_name]['depends on']:
-            has_depend = 1
-            depend_list = cfg_dict[item_name]['depends on'][item_value]
-            for item in depend_list:
-                #判断是否有因依赖关系发生的默认修改
-                for k in item:
-                    if k in cfg_temp_dict:
-                        if cfg_temp_dict[k] != item[k]:
-                            status = 1
-                    else:
-                            status = 1
-                    cfg_temp_dict[k] = item[k]
-                    depend_info = depend_info + item_name + ' = ' + item_value + ' --> ' + str(item) + '\n '
-                    depend_dict.update(item)
-                    init_key_list.append(k)
-                    if k in init_key_list:
-                        info=depend_info
-                    else:
-                        #print (k,init_item,item_name)
-                        s,d,info,dpd_dict,tmp_dict = checkDependence(init_key_list,k,item[k],cfg_dict,cfg_temp_dict,status,has_depend,depend_info,depend_dict)
-                    depend_info = info
+def checkDependence(self,init_key_list,item_name,item_value,cfg_dict,cfg_temp_dict,status,has_depend,depend_info,depend_dict):
+    if item_name in cfg_dict:
+        if 'depends on' in cfg_dict[item_name] :
+            if item_value in cfg_dict[item_name]['depends on']:
+                has_depend = 1
+                depend_list = cfg_dict[item_name]['depends on'][item_value]
+                for item in depend_list:
+                    #判断是否有因依赖关系发生的默认修改
+                    for k in item:
+                        if k in cfg_temp_dict:
+                            if cfg_temp_dict[k] != item[k]:
+                                status = 1
+                        else:
+                                status = 1
+                        cfg_temp_dict[k] = item[k]
+                        depend_info = depend_info + item_name + ' = ' + item_value + ' --> ' + str(item) + '\n '
+                        depend_dict.update(item)
+                        init_key_list.append(k)
+                        if k in init_key_list:
+                            info=depend_info
+                        else:
+                            #print (k,init_item,item_name)
+                            s,d,info,dpd_dict,tmp_dict = checkDependence(self.init_key_list,k,item[k],cfg_dict,cfg_temp_dict,status,has_depend,depend_info,depend_dict)
+                        depend_info = info
+    else:
+        QMessageBox.critical(self,'Fatal','該配置項與當前配置文件不匹配，請刪除該配置，重新生成！' )
+
     return status,has_depend,depend_info,depend_dict,cfg_temp_dict
 
-def checkConflict(item_name,item_value,cfg_dict,cfg_temp_dict,depend_dict,conflict,conflict_info):
+def checkConflict(self,item_name,item_value,cfg_dict,cfg_temp_dict,depend_dict,conflict,conflict_info):
     for item in cfg_dict:
         #检查当前项的conflict情况
         temp_depend_dict = depend_dict
@@ -185,12 +190,12 @@ def checkConflict(item_name,item_value,cfg_dict,cfg_temp_dict,depend_dict,confli
                             conflict_info = conflict_info + '%s = %s need %s = %s ,but you want to change %s to %s .\n ' % (item,cfg_temp_dict[item],key,be_depend_dict[key],key,value)
     return conflict,conflict_info
 
-def checkDefaultSet(cfg_dict,cfg_out_dict):
+def checkDefaultSet(self,cfg_dict,cfg_out_dict):
     for key,value in cfg_out_dict.items():
         #有依赖关系则打印提醒，有静默修改则发出警告
-        status,has_depend,depend_info,depend_dict,cfg_temp_dict = checkDependence([key],key,value,cfg_dict,cfg_out_dict,0,0,' ',{})
+        status,has_depend,depend_info,depend_dict,cfg_temp_dict = checkDependence(self,[key],key,value,cfg_dict,cfg_out_dict,0,0,' ',{})
         #若无冲突，可正常更新配置；否则，取消本次修改，给出错误提示；可能发生在两个地方，1是当前修改项，2是静默修改项，均需要做check；
-        conflict,conflict_info = checkConflict(key,value,cfg_dict,cfg_out_dict,depend_dict,0,' ')
+        conflict,conflict_info = checkConflict(self,key,value,cfg_dict,cfg_out_dict,depend_dict,0,' ')
         if status:
             return 1,depend_info
         elif conflict:

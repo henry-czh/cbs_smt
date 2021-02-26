@@ -20,6 +20,24 @@ import readConfiguration
 import saveConfiguration
 import icon
 
+from PyQt5.QtCore import QEvent
+from PyQt5.QtWidgets import QComboBox, QSpinBox
+
+class QComboBox_czh(QComboBox):
+    def __init__(self, parent=None):
+        super(QComboBox_czh,self).__init__(parent)
+
+    def wheelEvent(self, e):
+        if e.type() == QEvent.Wheel:
+            e.ignore()
+
+class QSpinBox(QSpinBox):
+    def __init__(self, parent=None):
+        super(QSpinBox,self).__init__(parent)
+
+    def wheelEvent(self, e):
+        if e.type() == QEvent.Wheel:
+            e.ignore()
 
 class MyMainForm(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
@@ -54,6 +72,8 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
         #create right menu
         self.treeView.setContextMenuPolicy(Qt.CustomContextMenu)
         self.treeView.customContextMenuRequested.connect(self.creat_rightmenu)
+        self.treeWidget.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.treeWidget.customContextMenuRequested.connect(self.creat_tree_rightmenu)
 
         #tooltip
         QToolTip.setFont(QFont('SansSerif',12))
@@ -90,7 +110,8 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
         #read configuration file
         self.cfg_dict = readConfiguration.readConfiguration(self.cfg_file,self.usr_cfg_file)
         self.cfg_output_dict = readConfiguration.genOutPutCfg(self.cfg_file,self.usr_cfg_file)
-        #print (self.cfg_output_dict)
+        self.cfg_dict = dict(sorted(self.cfg_dict.items(),key=lambda x:x[0]))
+        self.cfg_output_dict = dict(sorted(self.cfg_output_dict.items(),key=lambda x:x[0]))
         # 默认配置值检查
         self.check_default_cfg()
     
@@ -106,6 +127,17 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
         self.treeWidget.setColumnWidth(1,200)
 
         self.build_design_tree(self.treeWidget,self.designTree_dict,self.cfg_output_dict,self.cfg_dict,0)
+        self.treeWidget.sortItems(0,Qt.AscendingOrder)
+
+        #消除child節點
+        it = QTreeWidgetItemIterator(self.treeWidget)
+        while it.value():
+            item = it.value()
+            if not item.isHidden():
+                if item.toolTip(0):
+                    item_value = self.treeWidget.itemWidget(item,1).currentText().split(':')[0]
+                    self.hidden_child(item,item_value,0)
+            it.__iadd__(1)
 
         #********************************************************
         # add table item
@@ -118,7 +150,7 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
         self.build_macro_table(self.cfg_dict,self.cfg_output_dict)
 
     def check_default_cfg(self):
-        self.default_check,self.default_check_info = readConfiguration.checkDefaultSet(self.cfg_dict,self.cfg_output_dict)
+        self.default_check,self.default_check_info = readConfiguration.checkDefaultSet(self,self.cfg_dict,self.cfg_output_dict)
         if self.default_check:
             self.textBrowser.setTextColor(QColor('red'))
             self.text_out = '[CBS Console]$ 错误！错误！错误！\n 默认配置不满足依赖关系！\n%s' % (self.default_check_info)
@@ -134,14 +166,16 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
                 self.treeWidget.expandItem(sub_item)
             else:
                 self.treeWidget.collapseItem(sub_item)
-            if 'modules' in dt_dict[i]:
+            if 'modules' in dt_dict[i] and dt_dict[i]['item_name'] in cfg_output_dict:
                 sub_item.setText(2,dt_dict[i]['item_name'])
-                combbox = QComboBox()
+                combbox = QComboBox_czh()
                 combbox.addItems(dt_dict[i]['modules'])
-                combbox.setCurrentText(dt_dict[i]['default'])
+                #combbox.setCurrentText(dt_dict[i]['default'])
+                combbox.setCurrentText(cfg_dict[dt_dict[i]['item_name']]['module'][cfg_output_dict[dt_dict[i]['item_name']]])
                 self.treeWidget.setItemWidget(sub_item,1,combbox)
                 #编程和用户方式都会触发的是currentIndexChanged；只有用户操作才会触发的是activated()
                 combbox.activated.connect(self.update_design_tree)
+                #combbox.currentIndexChanged.connect(self.update_design_tree)
             if 'hdl_path' in dt_dict[i]:
                 sub_item.setToolTip(0,dt_dict[i]['hdl_path'])
                 sub_item.setToolTip(1,dt_dict[i]['help'])
@@ -156,7 +190,7 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
             if not 'instance' in cfg_dict[item]:
                 current_row = self.tableWidget.rowCount()
                 self.tableWidget.setRowCount(current_row+1)
-                combbox = QComboBox()
+                combbox = QComboBox_czh()
                 combbox.addItems(cfg_dict[item]['options'])
                 combbox.setCurrentText(cfg_out_dict[item])
                 ##默认不显示任何选项
@@ -215,13 +249,13 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
             item_name = item.text(2)
             item_value = module_selected.split(':')[0]
 
-        self.hidden_child(item,item_value)
+        self.hidden_child(item,item_value,1)
 
     def check_update(self,item_name,item_value,cfg_temp_dict):
         #有依赖关系则打印提醒，有静默修改则发出警告
-        status,has_depend,depend_info,depend_dict,cfg_temp_dict = readConfiguration.checkDependence([item_name],item_name,item_value,self.cfg_dict,cfg_temp_dict,0,0,' ',{})
+        status,has_depend,depend_info,depend_dict,cfg_temp_dict = readConfiguration.checkDependence(self,[item_name],item_name,item_value,self.cfg_dict,cfg_temp_dict,0,0,' ',{})
         #若无冲突，可正常更新配置；否则，取消本次修改，给出错误提示；可能发生在两个地方，1是当前修改项，2是静默修改项，均需要做check；
-        conflict,conflict_info = readConfiguration.checkConflict(item_name,item_value,self.cfg_dict,cfg_temp_dict,depend_dict,0,' ')
+        conflict,conflict_info = readConfiguration.checkConflict(self,item_name,item_value,self.cfg_dict,cfg_temp_dict,depend_dict,0,' ')
 
         if conflict:
             result = "Failed"
@@ -251,7 +285,7 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
                     if is_valid != -1:
                         #print (new_text)
                         self.treeWidget.itemWidget(refresh_unit_item[0],1).setCurrentText(new_text)
-                        self.hidden_child(refresh_unit_item[0],depend_dict[key])
+                        self.hidden_child(refresh_unit_item[0],depend_dict[key],1)
                     else:
                         QMessageBox.critical(self,'错误','配置项 %s 的options 格式错误！' % (key))
                 elif len(refresh_macro_item) == 1:
@@ -281,31 +315,38 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
             QMessageBox.critical(self,'错误','该配置存在被依赖关系，不能设置为当前值，请根据右下角Consel提示信息解除依赖！')
         return conflict
 
-    def hidden_child(self,item,item_value):
+    def hidden_child(self,item,item_value,not_quiet):
         #根据树形结构决定子节点是否需要隐藏
         child_count = item.childCount()
         if item_value != 'D':
             for i in range(child_count):
                 if not item.child(i).isHidden():
                     item.child(i).setHidden(True)
-                    self.textBrowser.setTextColor(QColor('black'))
-                    child_info = ' warning> 关闭设计节点 %s\n ' % (item.child(i).toolTip(0))
-                    self.textBrowser.append(child_info)
+                    if not_quiet:
+                        self.textBrowser.setTextColor(QColor('black'))
+                        if item.child(i).toolTip(0):
+                            child_info = ' warning> 关闭设计节点 %s 及其子節點' % (item.child(i).toolTip(0))
+                        else:
+                            child_info = ' warning> 关闭设计节点 %s 的所有子節點' % (item.toolTip(0))
+                        self.textBrowser.append(child_info)
                     #从cfg_out_dict中删除不必要的层次关系设置项
                     del_item = item.child(i).text(2)
                     if del_item in self.cfg_output_dict:
                         del self.cfg_output_dict[del_item] 
         else:
-            child_info = ' warning> 新增设计节点 %s\n ' % (item.toolTip(0))
+            child_info = ' warning> 新增设计节点 %s ' % (item.toolTip(0))
             for i in range(child_count):
                 item.child(i).setHidden(False)
                 #往cfg_out_dict中添加新出现的层次关系设置
                 add_item = item.child(i).text(2)
-                add_value = self.treeWidget.itemWidget(item.child(i),1).currentText()
-                self.cfg_output_dict[add_item]= add_value.split(':')[0]
-                #增加打印信息
-                child_info = child_info + '   子节点：%s --> %s \n ' % (item.child(i).toolTip(0),add_value.split(':')[0])
-            self.textBrowser.append(child_info)
+                if add_item:
+                    add_value = self.treeWidget.itemWidget(item.child(i),1).currentText()
+                    self.cfg_output_dict[add_item]= add_value.split(':')[0]
+                    #增加打印信息
+                    if item.child(i).toolTip(0):
+                        child_info = child_info + '   子节点：%s --> %s 及其子節點 ' % (item.child(i).toolTip(0),add_value.split(':')[0])
+            if not_quiet:
+                self.textBrowser.append(child_info)
 
     def applyConfig(self,index):
         textOut_design = saveConfiguration.saveUnitConfiguration(self.treeWidget)
@@ -346,14 +387,17 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
 
     def reloadConfigFile(self):
         self.cfg_dict = readConfiguration.readConfiguration(self.cfg_file,self.usr_cfg_file)
+        self.cfg_dict = dict(sorted(self.cfg_dict.items(),key=lambda x:x[0]))
         self.cfg_output_dict = readConfiguration.genOutPutCfg(self.cfg_file,self.usr_cfg_file)
         self.designTree_dict=readConfiguration.genDesignTree(self.cfg_file,self.usr_cfg_file)
+        self.cfg_output_dict = dict(sorted(self.cfg_output_dict.items(),key=lambda x:x[0]))
         # 默认配置值检查
         self.check_default_cfg()
         #重建tree結構
         self.treeWidget.clear()
         self.designTree_dict=readConfiguration.genDesignTree(self.cfg_file,self.usr_cfg_file)
         self.build_design_tree(self.treeWidget,self.designTree_dict,self.cfg_output_dict,self.cfg_dict,0)
+        self.treeWidget.sortItems(0,Qt.AscendingOrder)
         #重建table表格
         self.tableWidget.clearContents()
         self.tableWidget.setRowCount(0)
@@ -364,18 +408,30 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
         text_out = '[CBS Console]$ ReLoad Successfully '
         self.textBrowser.append(text_out)
 
+        #消除child節點
+        it = QTreeWidgetItemIterator(self.treeWidget)
+        while it.value():
+            item = it.value()
+            if not item.isHidden():
+                if item.toolTip(0):
+                    item_value = self.treeWidget.itemWidget(item,1).currentText().split(':')[0]
+                    self.hidden_child(item,item_value,0)
+            it.__iadd__(1)
+
     def loadConfigFile(self):
         # get the input text
         exist_cfg=QFileDialog.getOpenFileName(self,'open file',self.saveDir)[0]
         if exist_cfg:
             self.cfg_output_dict = readConfiguration.loadExistCfg(exist_cfg)
             self.designTree_dict=readConfiguration.genDesignTree(self.cfg_file,self.usr_cfg_file)
+            self.cfg_output_dict = dict(sorted(self.cfg_output_dict.items(),key=lambda x:x[0]))
             # 默认配置值检查
             self.check_default_cfg()
             #重建tree結構
             self.treeWidget.clear()
             self.designTree_dict=readConfiguration.genDesignTree(self.cfg_file,self.usr_cfg_file)
             self.build_design_tree(self.treeWidget,self.designTree_dict,self.cfg_output_dict,self.cfg_dict,0)
+            self.treeWidget.sortItems(0,Qt.AscendingOrder)
             #重建table表格
             self.tableWidget.clearContents()
             self.tableWidget.setRowCount(0)
@@ -386,6 +442,17 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
             text_out = '[CBS Console]$ Load %s Successfully ' % (exist_cfg)
             self.textBrowser.append(text_out)
 
+            #消除child節點
+            it = QTreeWidgetItemIterator(self.treeWidget)
+            while it.value():
+                item = it.value()
+                if not item.isHidden():
+                    if item.toolTip(0):
+                        item_value = self.treeWidget.itemWidget(item,1).currentText().split(':')[0]
+                        self.hidden_child(item,item_value,0)
+                it.__iadd__(1)
+
+
     def creat_rightmenu(self):
         self.treeView_menu=QMenu(self)
 
@@ -394,6 +461,55 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
 
         self.treeView_menu.addAction(self.actionA)
         self.treeView_menu.popup(QCursor.pos())
+
+    def creat_tree_rightmenu(self):
+        self.treeView_menu=QMenu(self)
+
+        self.actionA = QAction(u'展開',self)
+        self.actionA.triggered.connect(self.expend_child)
+        self.treeView_menu.addAction(self.actionA)
+
+        self.actionA = QAction(u'折疊',self)
+        self.actionA.triggered.connect(self.collapse_child)
+        self.treeView_menu.addAction(self.actionA)
+
+        self.actionA = QAction(u'全部展開',self)
+        self.actionA.triggered.connect(self.expend_all)
+        self.treeView_menu.addAction(self.actionA)
+
+        self.actionA = QAction(u'全部折疊',self)
+        self.actionA.triggered.connect(self.collapse_all)
+        self.treeView_menu.addAction(self.actionA)
+
+        self.treeView_menu.popup(QCursor.pos())
+
+    def expend_all(self):
+        self.treeWidget.expandAll()
+
+    def collapse_all(self):
+        self.treeWidget.collapseAll()
+
+    def expend_child(self):
+        item = self.treeWidget.currentItem()
+        self.expend_item(item)
+
+    def collapse_child(self):
+        item = self.treeWidget.currentItem()
+        self.collapse_item(item)
+
+    def expend_item(self,item):
+        self.treeWidget.expandItem(item)
+        child_count = item.childCount()
+        if child_count>0:
+            for i in range(child_count):
+                self.expend_item(item.child(i))
+
+    def collapse_item(self,item):
+        self.treeWidget.collapseItem(item)
+        child_count = item.childCount()
+        if child_count>0:
+            for i in range(child_count):
+                self.collapse_item(item.child(i))
 
     def open_with_gvim(self):
         file_name = self.dir_model.filePath(self.treeView.currentIndex())

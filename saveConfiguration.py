@@ -1,6 +1,25 @@
 #!/usr/bin/env python
 from PyQt5.QtWidgets import *
 
+from PyQt5.QtCore import QEvent
+from PyQt5.QtWidgets import QComboBox, QSpinBox
+
+class QComboBox_czh(QComboBox):
+    def __init__(self, parent=None):
+        super(QComboBox_czh,self).__init__(parent)
+
+    def wheelEvent(self, e):
+        if e.type() == QEvent.Wheel:
+            e.ignore()
+
+class QSpinBox(QSpinBox):
+    def __init__(self, parent=None):
+        super(QSpinBox,self).__init__(parent)
+
+    def wheelEvent(self, e):
+        if e.type() == QEvent.Wheel:
+            e.ignore()
+
 def saveMacroConfiguration(tableWidget):
     #++++++++++++++++++++++++++++++++++++++++
     # collect macro configuration
@@ -10,9 +29,9 @@ def saveMacroConfiguration(tableWidget):
     for i in range(row_count):
         if type(tableWidget.item(i,0))==QTableWidgetItem:
             macro = tableWidget.item(i,0).text()
-            value = ''
-            if type(tableWidget.cellWidget(i,1))==QComboBox:
-                value = tableWidget.cellWidget(i,1).currentText()
+            #value = ''
+            #if type(tableWidget.cellWidget(i,1))==QComboBox_czh:
+            value = tableWidget.cellWidget(i,1).currentText()
             #if macro and value:
             textOut = textOut+'%s = %s\n' % (macro,value)
     return textOut
