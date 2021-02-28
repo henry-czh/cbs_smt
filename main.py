@@ -8,6 +8,7 @@
 #导入程序运行必须模块
 import sys
 import os
+import copy
 #PyQt5中使用的基本控件都在PyQt5.QtWidgets模块中
 #from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox
 from PyQt5.QtCore import *
@@ -114,7 +115,7 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
         self.cfg_output_dict = dict(sorted(self.cfg_output_dict.items(),key=lambda x:x[0]))
         # 默认配置值检查
         self.check_default_cfg()
-    
+
         #****************************************************
         # add tree item
         #****************************************************
@@ -214,7 +215,7 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
 
     def update_macro_table(self):
         #将当前配置读入缓存
-        cfg_temp_dict = self.cfg_output_dict
+        cfg_temp_dict=copy.deepcopy(self.cfg_output_dict)
         #更新当前配置
         table_item = self.tableWidget.currentRow()
         item_name = self.tableWidget.item(table_item,0).text()
@@ -230,7 +231,7 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
 
     def update_design_tree(self):
         #将当前配置读入缓存
-        cfg_temp_dict = self.cfg_output_dict
+        cfg_temp_dict = copy.deepcopy(self.cfg_output_dict)
         #更新当前配置
         item = self.treeWidget.currentItem()
         module_selected = self.treeWidget.itemWidget(item,1).currentText()
@@ -241,21 +242,24 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
         check_status = self.check_update(item_name,item_value,cfg_temp_dict)
         #check_status=1 代表有冲突，check失败
         if check_status:
-            #恢复修改前的显示值
+            # 恢复修改前的显示值
             old_value = self.cfg_dict[item_name]['module'][self.cfg_output_dict[item_name]]
             self.treeWidget.itemWidget(item,1).setCurrentText(old_value)
-            #更新当前选择
+            # 更新当前选择
             module_selected = self.treeWidget.itemWidget(item,1).currentText()
             item_name = item.text(2)
             item_value = module_selected.split(':')[0]
-
-        self.hidden_child(item,item_value,1)
+            # 有冲突则修改失败，child检查失效
+            self.hidden_child(item,item_value,0)
+        else:
+            self.hidden_child(item,item_value,1)
 
     def check_update(self,item_name,item_value,cfg_temp_dict):
         #有依赖关系则打印提醒，有静默修改则发出警告
-        status,has_depend,depend_info,depend_dict,cfg_temp_dict = readConfiguration.checkDependence(self,[item_name],item_name,item_value,self.cfg_dict,cfg_temp_dict,0,0,' ',{})
+        quiet_change,has_depend,depend_info,depend_dict,cfg_temp_dict = readConfiguration.checkDependence(self,[item_name],item_name,item_value,self.cfg_dict,cfg_temp_dict,0,0,' ',{})
         #若无冲突，可正常更新配置；否则，取消本次修改，给出错误提示；可能发生在两个地方，1是当前修改项，2是静默修改项，均需要做check；
         conflict,conflict_info = readConfiguration.checkConflict(self,item_name,item_value,self.cfg_dict,cfg_temp_dict,depend_dict,0,' ')
+        #print (conflict)
 
         if conflict:
             result = "Failed"
@@ -265,14 +269,17 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
         text_out = '[CBS Console]$ 本次修改项 %s，目标配置 %s，结果： %s ' % (item_name,item_value,result)
         self.textBrowser.append(text_out)
 
-        if conflict==0 and has_depend and status==0:
+        if conflict==0 and has_depend and quiet_change==0:
             self.textBrowser.setTextColor(QColor('black'))
             text_out = ' info> 存在依赖关系，且目前均已满足,依赖关系如下: '
             self.textBrowser.append(text_out)
             self.textBrowser.setTextColor(QColor('green'))
             self.textBrowser.append(depend_info)
             QMessageBox.information(self,'信息','该配置存在依赖关系，但没有静默修改，详情见右下角Consel输出信息！')
-        if conflict==0 and has_depend and status:
+        if conflict==0 and has_depend and quiet_change:
+            # 没有冲突，更新输出cfg_output_dict
+            cfg_temp_dict[item_name] = item_value
+            self.cfg_output_dict = copy.deepcopy(cfg_temp_dict)
             #修改配置项显示信息
             for key in depend_dict:
                 refresh_unit_item = self.treeWidget.findItems(key,Qt.MatchContains | Qt.MatchRecursive,2)
@@ -283,7 +290,6 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
                     #findText返回的是index，0不能作为判断条件
                     is_valid = self.treeWidget.itemWidget(refresh_unit_item[0],1).findText(new_text,Qt.MatchExactly|Qt.MatchCaseSensitive)
                     if is_valid != -1:
-                        #print (new_text)
                         self.treeWidget.itemWidget(refresh_unit_item[0],1).setCurrentText(new_text)
                         self.hidden_child(refresh_unit_item[0],depend_dict[key],1)
                     else:
@@ -300,10 +306,7 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
             self.textBrowser.append(depend_info)
             QMessageBox.warning(self,'警告','该修改引发静默修改，详情见右下角Consel输出信息,Be Carefully！')
         #处理冲突情况
-        if conflict==0:
-            cfg_temp_dict[item_name] = item_value
-            self.cfg_output_dict = cfg_temp_dict
-        else:
+        if conflict!=0:
             #输出打印信息到控制台
             self.textBrowser.setTextColor(QColor('black'))
             text_out = ' error> Conflict 情况如下: '
@@ -315,44 +318,83 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
             QMessageBox.critical(self,'错误','该配置存在被依赖关系，不能设置为当前值，请根据右下角Consel提示信息解除依赖！')
         return conflict
 
-    def hidden_child(self,item,item_value,not_quiet):
-        #根据树形结构决定子节点是否需要隐藏
+    def hidden_childen(self,item,info):
+        item.setHidden(True)
+        child_info = ''
+        #从cfg_out_dict中删除不必要的层次关系设置项
+        if item.toolTip(0):
+            del_item = item.text(2)
+            child_info = info + ' warning> 关闭设计节点 %s \n' % (item.toolTip(0))
+            if del_item in self.cfg_output_dict:
+                del self.cfg_output_dict[del_item] 
+        #迭代查找child节点
         child_count = item.childCount()
-        if item_value != 'D':
+        if child_count>0:
             for i in range(child_count):
-                if not item.child(i).isHidden():
-                    item.child(i).setHidden(True)
-                    if not_quiet:
-                        self.textBrowser.setTextColor(QColor('black'))
-                        if item.child(i).toolTip(0):
-                            child_info = ' warning> 关闭设计节点 %s 及其子節點' % (item.child(i).toolTip(0))
-                        else:
-                            child_info = ' warning> 关闭设计节点 %s 的所有子節點' % (item.toolTip(0))
-                        self.textBrowser.append(child_info)
-                    #从cfg_out_dict中删除不必要的层次关系设置项
-                    del_item = item.child(i).text(2)
-                    if del_item in self.cfg_output_dict:
-                        del self.cfg_output_dict[del_item] 
+                child_info = self.hidden_childen(item.child(i),child_info)
+        return child_info
+
+    def show_childen(self,item,info):
+        item.setHidden(False)
+        add_item = item.text(2)
+        child_info = ''
+        if add_item:
+            #往cfg_out_dict中添加新出现的层次关系设置
+            add_value = self.treeWidget.itemWidget(item,1).currentText()
+            self.cfg_output_dict[add_item]= add_value.split(':')[0]
+            #增加打印信息
+            if item.toolTip(0):
+                child_info = info + ' warning> 打开子节点：%s --> %s \n' % (item.toolTip(0),add_value.split(':')[0])
+        #迭代查找child节点
+        child_count = item.childCount()
+        if child_count>0:
+            for i in range(child_count):
+                child_info = self.show_childen(item.child(i),child_info)
+        return child_info
+
+    def add_parent(self,item):
+        #子节点设置hidden false后父节点自动显示
+        #if item.isHidden():
+        if item:
+            item.setHidden(False)
+            if item.toolTip(0):
+                self.cfg_output_dict[item.text(2)] = 'D'
+                design_tag = self.cfg_dict[item.text(2)]['module']['D']
+                self.treeWidget.itemWidget(item,1).setCurrentText(design_tag)
+            self.add_parent(item.parent())
+
+    def hidden_child(self,item,item_value,not_quiet):
+        if item.isHidden():
+            item.setHidden(False)
+            self.cfg_output_dict[item.text(2)] = item_value.split(':')[0]
+            self.add_parent(item.parent())
         else:
-            child_info = ' warning> 新增设计节点 %s ' % (item.toolTip(0))
-            for i in range(child_count):
-                item.child(i).setHidden(False)
-                #往cfg_out_dict中添加新出现的层次关系设置
-                add_item = item.child(i).text(2)
-                if add_item:
-                    add_value = self.treeWidget.itemWidget(item.child(i),1).currentText()
-                    self.cfg_output_dict[add_item]= add_value.split(':')[0]
-                    #增加打印信息
-                    if item.child(i).toolTip(0):
-                        child_info = child_info + '   子节点：%s --> %s 及其子節點 ' % (item.child(i).toolTip(0),add_value.split(':')[0])
-            if not_quiet:
-                self.textBrowser.append(child_info)
+            #根据树形结构决定子节点是否需要隐藏
+            child_count = item.childCount()
+            if item_value != 'D':
+                child_info = ''
+                for i in range(child_count):
+                    if not item.child(i).isHidden():
+                        #item.child(i).setHidden(True)
+                        #迭代处理所有子节点，并返回处理打印信息
+                        child_info = self.hidden_childen(item.child(i),child_info)
+                        if not_quiet:
+                            self.textBrowser.setTextColor(QColor('black'))
+                            self.textBrowser.append(child_info)
+            else:
+                child_info = ' warning> 新增设计节点 %s ' % (item.toolTip(0))
+                if not_quiet:
+                    self.textBrowser.append(child_info)
+                for i in range(child_count):
+                    item.child(i).setHidden(False)
+                    child_info = self.show_childen(item.child(i),'')
+                    if not_quiet:
+                        self.textBrowser.append(child_info)
 
     def applyConfig(self,index):
         textOut_design = saveConfiguration.saveUnitConfiguration(self.treeWidget)
         textOut_macro = saveConfiguration.saveMacroConfiguration(self.tableWidget)
         self.textEdit.setPlainText(textOut_macro+textOut_design)
-        #print (self.cfg_output_dict)
 
     def saveConfigFile(self):
         # get the input text
@@ -456,7 +498,7 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
     def creat_rightmenu(self):
         self.treeView_menu=QMenu(self)
 
-        self.actionA = QAction(u'Open',self)
+        self.actionA = QAction(u'Open With Gvim',self)
         self.actionA.triggered.connect(self.open_with_gvim)
 
         self.treeView_menu.addAction(self.actionA)
@@ -465,19 +507,19 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
     def creat_tree_rightmenu(self):
         self.treeView_menu=QMenu(self)
 
-        self.actionA = QAction(u'展開',self)
+        self.actionA = QAction(u'展开',self)
         self.actionA.triggered.connect(self.expend_child)
         self.treeView_menu.addAction(self.actionA)
 
-        self.actionA = QAction(u'折疊',self)
+        self.actionA = QAction(u'折叠',self)
         self.actionA.triggered.connect(self.collapse_child)
         self.treeView_menu.addAction(self.actionA)
 
-        self.actionA = QAction(u'全部展開',self)
+        self.actionA = QAction(u'全部展开',self)
         self.actionA.triggered.connect(self.expend_all)
         self.treeView_menu.addAction(self.actionA)
 
-        self.actionA = QAction(u'全部折疊',self)
+        self.actionA = QAction(u'全部折叠',self)
         self.actionA.triggered.connect(self.collapse_all)
         self.treeView_menu.addAction(self.actionA)
 

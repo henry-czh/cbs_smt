@@ -3,6 +3,7 @@
 import os
 import sys
 import re
+import copy
 from os import system
 from PyQt5.QtWidgets import *
 
@@ -104,7 +105,6 @@ def genDesignTree(cfg_file,usr_cfg_file):
 
     for item in cfg_dict.keys():
         if 'instance' in cfg_dict[item]:
-            #print (cfg_dict[item]['instance'])
             instance_list = cfg_dict[item]['instance'][0].strip().split('.')
             if len(instance_list)==0:
                 raise Exception('%s has \"instance\",but its value is null!! check the config file' % (item))
@@ -166,18 +166,17 @@ def checkDependence(self,init_key_list,item_name,item_value,cfg_dict,cfg_temp_di
                         if k in init_key_list:
                             info=depend_info
                         else:
-                            #print (k,init_item,item_name)
                             s,d,info,dpd_dict,tmp_dict = checkDependence(self.init_key_list,k,item[k],cfg_dict,cfg_temp_dict,status,has_depend,depend_info,depend_dict)
                         depend_info = info
     else:
-        QMessageBox.critical(self,'Fatal','該配置項與當前配置文件不匹配，請刪除該配置，重新生成！' )
+        QMessageBox.critical(self,'Fatal','该配置项与当前配置文件不匹配，请删除该配置，重新生成！' )
 
     return status,has_depend,depend_info,depend_dict,cfg_temp_dict
 
 def checkConflict(self,item_name,item_value,cfg_dict,cfg_temp_dict,depend_dict,conflict,conflict_info):
     for item in cfg_dict:
         #检查当前项的conflict情况
-        temp_depend_dict = depend_dict
+        temp_depend_dict = copy.deepcopy(depend_dict)
         temp_depend_dict.update({item_name:item_value})
         #检查静默修改部分的conflict情况
         for key,value in temp_depend_dict.items():
