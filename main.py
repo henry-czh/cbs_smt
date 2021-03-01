@@ -269,6 +269,11 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
         text_out = '[CBS Console]$ 本次修改项 %s，目标配置 %s，结果： %s ' % (item_name,item_value,result)
         self.textBrowser.append(text_out)
 
+        if conflict==0:
+            # 没有冲突，更新输出cfg_output_dict
+            cfg_temp_dict[item_name] = item_value
+            self.cfg_output_dict = copy.deepcopy(cfg_temp_dict)
+
         if conflict==0 and has_depend and quiet_change==0:
             self.textBrowser.setTextColor(QColor('black'))
             text_out = ' info> 存在依赖关系，且目前均已满足,依赖关系如下: '
@@ -277,9 +282,6 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
             self.textBrowser.append(depend_info)
             QMessageBox.information(self,'信息','该配置存在依赖关系，但没有静默修改，详情见右下角Consel输出信息！')
         if conflict==0 and has_depend and quiet_change:
-            # 没有冲突，更新输出cfg_output_dict
-            cfg_temp_dict[item_name] = item_value
-            self.cfg_output_dict = copy.deepcopy(cfg_temp_dict)
             #修改配置项显示信息
             for key in depend_dict:
                 refresh_unit_item = self.treeWidget.findItems(key,Qt.MatchContains | Qt.MatchRecursive,2)
@@ -361,12 +363,21 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
                 self.cfg_output_dict[item.text(2)] = 'D'
                 design_tag = self.cfg_dict[item.text(2)]['module']['D']
                 self.treeWidget.itemWidget(item,1).setCurrentText(design_tag)
+                # 打印直接操作子节点
+                child_info = ' warning> 打开设计节点 %s --> D ' % (item.toolTip(0))
+                self.textBrowser.setTextColor(QColor('black'))
+                self.textBrowser.append(child_info)
             self.add_parent(item.parent())
 
     def hidden_child(self,item,item_value,not_quiet):
         if item.isHidden():
             item.setHidden(False)
             self.cfg_output_dict[item.text(2)] = item_value.split(':')[0]
+            # 打印直接操作子节点
+            child_info = ' warning> 新增设计节点 %s --> %s' % (item.toolTip(0),item_value.split(':')[0])
+            self.textBrowser.setTextColor(QColor('black'))
+            self.textBrowser.append(child_info)
+            # 检查父节点，释放被hidden父节点
             self.add_parent(item.parent())
         else:
             #根据树形结构决定子节点是否需要隐藏
@@ -382,7 +393,7 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
                             self.textBrowser.setTextColor(QColor('black'))
                             self.textBrowser.append(child_info)
             else:
-                child_info = ' warning> 新增设计节点 %s ' % (item.toolTip(0))
+                child_info = ' warning> 新增设计节点 %s --> D ' % (item.toolTip(0))
                 if not_quiet:
                     self.textBrowser.append(child_info)
                 for i in range(child_count):
