@@ -86,7 +86,8 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
         self.mdiArea.addSubWindow(self.subwindow_2)
         self.subwindow_2.show()
         self.mdiArea.addSubWindow(self.subwindow)
-        self.subwindow.show()
+        #self.subwindow.show()
+        self.subwindow.showMaximized()
 
         #********************************************************
         # connect buttons and function 
@@ -120,8 +121,11 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
         self.designTree_dict=readConfiguration.genDesignTree(self.cfg_file,self.usr_cfg_file)
         
         #default mode select
-        self.current_mode = list(self.mode_dict.keys())[0]
-        self.current_mode_dict = self.mode_dict[self.current_mode]
+        if len(self.mode_dict) >0:
+            self.current_mode = list(self.mode_dict.keys())[0]
+            self.current_mode_dict = self.mode_dict[self.current_mode]
+        else:
+            self.current_mode_dict = {}
 
         #****************************************************
         # add tree item
@@ -165,13 +169,31 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
     def mode_select(self):
         current_mode = self.comboBox.currentText()
         self.treeWidget.clear()
-        self.tableWidget.clearContents()
         self.build_design_tree(self.treeWidget,self.designTree_dict,self.cfg_output_dict,self.cfg_dict,0,self.mode_dict[current_mode])
         self.treeWidget.sortItems(0,Qt.AscendingOrder)
+
+        self.tableWidget.clearContents()
+        self.tableWidget.setRowCount(0)
         self.build_macro_table(self.cfg_dict,self.cfg_output_dict,self.mode_dict[current_mode])
         self.tableWidget.sortItems(0,Qt.AscendingOrder)
+
         # 默认配置值检查
         self.check_default_cfg()
+
+        #打印結果
+        self.textBrowser.setTextColor(QColor('black'))
+        text_out = '[CBS Console]$ Mode change to : %s Successfully ' % (current_mode)
+        self.textBrowser.append(text_out)
+
+        #消除child節點
+        it = QTreeWidgetItemIterator(self.treeWidget)
+        while it.value():
+            item = it.value()
+            if not item.isHidden():
+                if item.toolTip(0):
+                    item_value = self.treeWidget.itemWidget(item,1).currentText().split(':')[0]
+                    self.hidden_child(item,item_value,0)
+            it.__iadd__(1)
 
 
     def check_default_cfg(self):

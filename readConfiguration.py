@@ -21,10 +21,6 @@ def continuation_lines(fin1,fin2):
             yield line
 
 def readConfiguration(cfg_file,usr_cfg_file):
-    #main_rf = open(cfg_file,'r')
-    #usr_rf = open(usr_cfg_file,'r')
-    #src_rf = main_rf.readlines()+usr_rf.readlines()
-
     cfg_dict={}
     mode_dict={}
     dpd_list=[]
@@ -82,19 +78,34 @@ def readConfiguration(cfg_file,usr_cfg_file):
             if dpd_str != '':
                 dpd_list = re.findall(dpd_pattern,dpd_str)
                 for item in dpd_list:
-                    item = re.sub('.options','',item)
-                    item = re.sub('=',':',item).split(':')
-                    item_key = item[0].strip('{')
-                    if item_key in dpd_dict.keys():
-                        dpd_key_list = dpd_dict[item[0].strip('{')]
-                        dpd_key_list.append({item[1]:item[2].strip('}')})
-                    else:
-                        dpd_key_list=[]
-                        dpd_key_list.append({item[1]:item[2].strip('}')})
-                    dpd_dict[item[0].strip('{')]=dpd_key_list
+                    #首先将依赖项与被依赖项分开
+                    to_relay = item.split(':')[0].strip()
+                    be_relied = item.split(':')[1].strip()
+                    #将依赖项和被依赖想分组
+                    to_relay_list = to_relay.split(',')
+                    be_relied_list = be_relied.split(',')
+
+                    #为每个依赖项建立字典
+                    for relay_item in to_relay_list:
+                        relay_item = relay_item.strip('{').strip()
+                        if relay_item in dpd_dict.keys():
+                            dpd_key_list = dpd_dict[relay_item]
+                            #逐一增加被依赖项
+                            for be_relied_item in be_relied_list:
+                                be_relied_item = re.sub('.options','',be_relied_item)
+                                be_relied_item_name = be_relied_item.split('=')[0].strip('}').strip()
+                                be_relied_item_value= be_relied_item.split('=')[1].strip('}').strip()
+                                dpd_key_list.append({be_relied_item_name:be_relied_item_value})
+                        else:
+                            dpd_key_list=[]
+                            #逐一增加被依赖项
+                            for be_relied_item in be_relied_list:
+                                be_relied_item = re.sub('.options','',be_relied_item)
+                                be_relied_item_name = be_relied_item.split('=')[0].strip('}').strip()
+                                be_relied_item_value= be_relied_item.split('=')[1].strip('}').strip()
+                                dpd_key_list.append({be_relied_item_name:be_relied_item_value})
+                        dpd_dict[relay_item]=dpd_key_list
                 cfg_dict[cfg_key]['depends on'] = dpd_dict
-    #main_rf.close()
-    #usr_rf.close()
     return cfg_dict, mode_dict
 
 def create_dict(tdict,inst_list,module_list,hdl_path,help_info,item_name,default):
