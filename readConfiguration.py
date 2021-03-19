@@ -7,12 +7,26 @@ import copy
 from os import system
 from PyQt5.QtWidgets import *
 
+def continuation_lines(fin1,fin2):
+    with open(fin1) as f1,open(fin2) as f2:
+        for line in f1:
+            line = line.rstrip('\n')
+            while line.endswith('\\'):
+                line = line[:-1] + next(f1).rstrip('\n')
+            yield line
+        for line in f2:
+            line = line.rstrip('\n')
+            while line.endswith('\\'):
+                line = line[:-1] + next(f2).rstrip('\n')
+            yield line
+
 def readConfiguration(cfg_file,usr_cfg_file):
-    main_rf = open(cfg_file,'r')
-    usr_rf = open(usr_cfg_file,'r')
-    src_rf = main_rf.readlines()+usr_rf.readlines()
+    #main_rf = open(cfg_file,'r')
+    #usr_rf = open(usr_cfg_file,'r')
+    #src_rf = main_rf.readlines()+usr_rf.readlines()
 
     cfg_dict={}
+    mode_dict={}
     dpd_list=[]
     dpd_key_list=[]
 
@@ -26,8 +40,18 @@ def readConfiguration(cfg_file,usr_cfg_file):
     deft_pattern=re.compile(r'^[ ]*?\[default\]')
     help_pattern=re.compile(r'^[ ]*?\[help\]')
     dpdon_pattern=re.compile(r'^[ ]*?\[depends on\]')
+    mode_pattern=re.compile(r'^[ ]*?<config_mode=')
+    const_config_pattern=re.compile(r'^[ ]*?\[const_config\]')
 
-    for line in src_rf:
+    for line in continuation_lines(cfg_file,usr_cfg_file):
+        if re.match(mode_pattern,line):
+            mode_name = re.sub('\<config_mode\=','',line).strip().strip('>')
+            mode_dict[mode_name]={}
+        if re.match(const_config_pattern,line):
+            const_config=re.sub('\[const_config\]','',line).strip().strip('{').strip('}')
+            const_list = const_config.split(',')
+            for item in const_list:
+                mode_dict[mode_name][item.split('=')[0].strip()] = item.split('=')[1].strip()
         if re.match(comment_pattern,line):
             continue
         if re.match(top_pattern,line):
@@ -69,9 +93,9 @@ def readConfiguration(cfg_file,usr_cfg_file):
                         dpd_key_list.append({item[1]:item[2].strip('}')})
                     dpd_dict[item[0].strip('{')]=dpd_key_list
                 cfg_dict[cfg_key]['depends on'] = dpd_dict
-    main_rf.close()
-    usr_rf.close()
-    return cfg_dict
+    #main_rf.close()
+    #usr_rf.close()
+    return cfg_dict, mode_dict
 
 def create_dict(tdict,inst_list,module_list,hdl_path,help_info,item_name,default):
     if len(inst_list)==1:
@@ -100,7 +124,7 @@ def create_dict(tdict,inst_list,module_list,hdl_path,help_info,item_name,default
     return tdict
 
 def genDesignTree(cfg_file,usr_cfg_file):
-    cfg_dict = readConfiguration(cfg_file,usr_cfg_file)
+    cfg_dict,mode_dict = readConfiguration(cfg_file,usr_cfg_file)
     tree_dict = dict()
 
     for item in cfg_dict.keys():
@@ -120,7 +144,7 @@ def genDesignTree(cfg_file,usr_cfg_file):
 
 #create temp config database
 def genOutPutCfg(cfg_file,usr_cfg_file):
-    cfg_dict = readConfiguration(cfg_file,usr_cfg_file)
+    cfg_dict,mode_dict = readConfiguration(cfg_file,usr_cfg_file)
     cfg_temp_dict = dict()
     for item in cfg_dict:
         if 'default' in cfg_dict[item]:
@@ -131,7 +155,7 @@ def genOutPutCfg(cfg_file,usr_cfg_file):
             if reply == QMessageBox.Yes:
                 line_num = os.system('grep -n %s ./test.cfg' % (item))
                 os.system('gvim ./test.cfg +%s' % (line_num))
-                cfg_dict = readConfiguration.readConfiguration(cfg_file,usr_cfg_file)
+                cfg_dict,mode_dict = readConfiguration.readConfiguration(cfg_file,usr_cfg_file)
                 cfg_temp_dict[item] = cfg_dict[item]['default']
     return cfg_temp_dict
 

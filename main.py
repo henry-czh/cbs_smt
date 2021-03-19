@@ -109,26 +109,38 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
         self.actionExit.triggered.connect(self.exitGui)
 
         #read configuration file
-        self.cfg_dict = readConfiguration.readConfiguration(self.cfg_file,self.usr_cfg_file)
+        self.cfg_dict,self.mode_dict = readConfiguration.readConfiguration(self.cfg_file,self.usr_cfg_file)
         self.cfg_output_dict = readConfiguration.genOutPutCfg(self.cfg_file,self.usr_cfg_file)
         self.cfg_dict = dict(sorted(self.cfg_dict.items(),key=lambda x:x[0]))
         self.cfg_output_dict = dict(sorted(self.cfg_output_dict.items(),key=lambda x:x[0]))
         # 默认配置值检查
         self.check_default_cfg()
 
+        #gen dict from cfg file
+        self.designTree_dict=readConfiguration.genDesignTree(self.cfg_file,self.usr_cfg_file)
+        
+        #default mode select
+        self.current_mode = list(self.mode_dict.keys())[0]
+        self.current_mode_dict = self.mode_dict[self.current_mode]
+
         #****************************************************
         # add tree item
         #****************************************************
-        #gen dict from cfg file
-        self.designTree_dict=readConfiguration.genDesignTree(self.cfg_file,self.usr_cfg_file)
-
         self.treeWidget.setColumnCount(3)
         self.treeWidget.setHeaderLabels(['instance','module','item'])
         self.treeWidget.setColumnWidth(0,300)
         self.treeWidget.setColumnWidth(1,200)
 
-        self.build_design_tree(self.treeWidget,self.designTree_dict,self.cfg_output_dict,self.cfg_dict,0)
+        self.build_design_tree(self.treeWidget,self.designTree_dict,self.cfg_output_dict,self.cfg_dict,0,self.current_mode_dict)
         self.treeWidget.sortItems(0,Qt.AscendingOrder)
+
+        #****************************************************
+        # add mode select
+        #****************************************************
+        self.comboBox.addItems(self.mode_dict.keys())
+        #编程和用户方式都会触发的是currentIndexChanged；只有用户操作才会触发的是activated()
+        self.comboBox.activated.connect(self.mode_select)
+
 
         #消除child節點
         it = QTreeWidgetItemIterator(self.treeWidget)
@@ -148,7 +160,19 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
         self.tableWidget.setColumnWidth(0,300)
         self.tableWidget.setColumnWidth(1,200)
         self.tableWidget.setHorizontalHeaderLabels(['macro','value'])
-        self.build_macro_table(self.cfg_dict,self.cfg_output_dict)
+        self.build_macro_table(self.cfg_dict,self.cfg_output_dict,self.current_mode_dict)
+
+    def mode_select(self):
+        current_mode = self.comboBox.currentText()
+        self.treeWidget.clear()
+        self.tableWidget.clearContents()
+        self.build_design_tree(self.treeWidget,self.designTree_dict,self.cfg_output_dict,self.cfg_dict,0,self.mode_dict[current_mode])
+        self.treeWidget.sortItems(0,Qt.AscendingOrder)
+        self.build_macro_table(self.cfg_dict,self.cfg_output_dict,self.mode_dict[current_mode])
+        self.tableWidget.sortItems(0,Qt.AscendingOrder)
+        # 默认配置值检查
+        self.check_default_cfg()
+
 
     def check_default_cfg(self):
         self.default_check,self.default_check_info = readConfiguration.checkDefaultSet(self,self.cfg_dict,self.cfg_output_dict)
@@ -158,7 +182,8 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
             self.textBrowser.append(self.text_out)
             QMessageBox.critical(self,'Fatal','默认配置错误，请联系相关管理员，修改原始配置文件后Reload！' )
 
-    def build_design_tree(self,item,dt_dict,cfg_output_dict,cfg_dict,level):
+    def build_design_tree(self,item,dt_dict,cfg_output_dict,cfg_dict,level,mode_dict):
+        #print (dt_dict.keys())
         for i in dt_dict.keys():
             level = level+1
             sub_item = QTreeWidgetItem(item)
@@ -167,26 +192,40 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
                 self.treeWidget.expandItem(sub_item)
             else:
                 self.treeWidget.collapseItem(sub_item)
-            if 'modules' in dt_dict[i] and dt_dict[i]['item_name'] in cfg_output_dict:
+            #if 'modules' in dt_dict[i] and dt_dict[i]['item_name'] in cfg_output_dict:
+            if 'modules' in dt_dict[i]:
                 sub_item.setText(2,dt_dict[i]['item_name'])
                 combbox = QComboBox_czh()
                 combbox.addItems(dt_dict[i]['modules'])
-                #combbox.setCurrentText(dt_dict[i]['default'])
-                combbox.setCurrentText(cfg_dict[dt_dict[i]['item_name']]['module'][cfg_output_dict[dt_dict[i]['item_name']]])
+                if dt_dict[i]['item_name'] in cfg_output_dict:
+                    combbox.setCurrentText(cfg_dict[dt_dict[i]['item_name']]['module'][cfg_output_dict[dt_dict[i]['item_name']]])
+                else:
+                    combbox.setCurrentText(dt_dict[i]['default'])
+                #如果配置项在mode控制下，则为const值，不能任意选择
+                if dt_dict[i]['item_name'] in mode_dict:
+                    combbox.setCurrentText(cfg_dict[dt_dict[i]['item_name']]['module'][mode_dict[dt_dict[i]['item_name']]])
+                    self.cfg_output_dict[dt_dict[i]['item_name']] = mode_dict[dt_dict[i]['item_name']]
+                    list_num = combbox.count()
+                    #关闭所有选项为不可选状态
+                    for num in range(list_num):
+                        icon_lock = QIcon(":/ico/lock.ico")
+                        sub_item.setIcon(1,icon_lock)
+                        combbox.setItemData(num,QVariant(0),Qt.UserRole-1)
                 self.treeWidget.setItemWidget(sub_item,1,combbox)
                 #编程和用户方式都会触发的是currentIndexChanged；只有用户操作才会触发的是activated()
                 combbox.activated.connect(self.update_design_tree)
                 #combbox.currentIndexChanged.connect(self.update_design_tree)
-            if 'hdl_path' in dt_dict[i]:
-                sub_item.setToolTip(0,dt_dict[i]['hdl_path'])
-                sub_item.setToolTip(1,dt_dict[i]['help'])
             if type(dt_dict[i]['sub_tree']) is list:
                 continue
             else:
-                self.build_design_tree(sub_item,dt_dict[i]['sub_tree'],cfg_output_dict,cfg_dict,level)
+                self.build_design_tree(sub_item,dt_dict[i]['sub_tree'],cfg_output_dict,cfg_dict,level,mode_dict)
+            if 'hdl_path' in dt_dict[i]:
+                sub_item.setToolTip(0,dt_dict[i]['hdl_path'])
+                sub_item.setToolTip(1,dt_dict[i]['help'])
+
         return item
 
-    def build_macro_table(self,cfg_dict,cfg_out_dict):
+    def build_macro_table(self,cfg_dict,cfg_out_dict,mode_dict):
         for item in cfg_dict.keys():
             if not 'instance' in cfg_dict[item]:
                 current_row = self.tableWidget.rowCount()
@@ -196,18 +235,27 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
                 combbox.setCurrentText(cfg_out_dict[item])
                 ##默认不显示任何选项
                 #combbox.setCurrentIndex(-1)
-                ##获取下拉菜单个数
-                #list_num = combbox.count()
-                ##关闭所有选项为不可选状态
-                #for i in range(list_num):
-                #    #恢复下拉菜单可选
-                #    #combbox.setItemData(i,QVariant(0),Qt.UserRole-0)
-                #    combbox.setItemData(i,QVariant(0),Qt.UserRole-1)
+
+                #mode控制下的const设置
+                if item in mode_dict:
+                    combbox.setCurrentText(mode_dict[item])
+                    self.cfg_output_dict[item] = mode_dict[item]
+                    #获取下拉菜单个数
+                    list_num = combbox.count()
+                    #关闭所有选项为不可选状态
+                    for i in range(list_num):
+                        combbox.setItemData(i,QVariant(0),Qt.UserRole-1)
+                        #恢复下拉菜单可选
+                        #combbox.setItemData(i,QVariant(0),Qt.UserRole-0)
+
                 combbox.activated.connect(self.update_macro_table)
                 #combbox.currentIndexChanged.connect(self.update_macro_table)
                 keyItem = QTableWidgetItem(item)
                 keyItem.setToolTip(cfg_dict[item]['help'])
                 keyItem.setFlags((Qt.ItemIsEnabled))
+                if item in mode_dict:
+                    icon_lock = QIcon(":/ico/lock.ico")
+                    keyItem.setIcon(icon_lock)
                 self.tableWidget.setItem(current_row,0,keyItem)
                 self.tableWidget.setCellWidget(current_row,1,combbox)
                 #self.tableWidget.removeCellWidget(current_row,1)
@@ -449,7 +497,7 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
         #重建tree結構
         self.treeWidget.clear()
         self.designTree_dict=readConfiguration.genDesignTree(self.cfg_file,self.usr_cfg_file)
-        self.build_design_tree(self.treeWidget,self.designTree_dict,self.cfg_output_dict,self.cfg_dict,0)
+        self.build_design_tree(self.treeWidget,self.designTree_dict,self.cfg_output_dict,self.cfg_dict,0,self.current_mode_dict)
         self.treeWidget.sortItems(0,Qt.AscendingOrder)
         #重建table表格
         self.tableWidget.clearContents()
@@ -483,12 +531,12 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
             #重建tree結構
             self.treeWidget.clear()
             self.designTree_dict=readConfiguration.genDesignTree(self.cfg_file,self.usr_cfg_file)
-            self.build_design_tree(self.treeWidget,self.designTree_dict,self.cfg_output_dict,self.cfg_dict,0)
+            self.build_design_tree(self.treeWidget,self.designTree_dict,self.cfg_output_dict,self.cfg_dict,0,self.current_mode_dict)
             self.treeWidget.sortItems(0,Qt.AscendingOrder)
             #重建table表格
             self.tableWidget.clearContents()
             self.tableWidget.setRowCount(0)
-            self.build_macro_table(self.cfg_dict,self.cfg_output_dict)
+            self.build_macro_table(self.cfg_dict,self.cfg_output_dict,self.current_mode_dict)
 
             #打印結果
             self.textBrowser.setTextColor(QColor('black'))
