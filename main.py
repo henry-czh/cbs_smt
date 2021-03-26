@@ -178,7 +178,8 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
         self.tableWidget.sortItems(0,Qt.AscendingOrder)
 
         # 默认配置值检查
-        self.check_default_cfg()
+        # 模式选择过程不涉及默认值检查
+        #self.check_default_cfg()
 
         #打印結果
         self.textBrowser.setTextColor(QColor('black'))
@@ -237,13 +238,13 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
                 #编程和用户方式都会触发的是currentIndexChanged；只有用户操作才会触发的是activated()
                 combbox.activated.connect(self.update_design_tree)
                 #combbox.currentIndexChanged.connect(self.update_design_tree)
+            if 'hdl_path' in dt_dict[i]:
+                sub_item.setToolTip(0,dt_dict[i]['hdl_path'])
+                sub_item.setToolTip(1,dt_dict[i]['help'])
             if type(dt_dict[i]['sub_tree']) is list:
                 continue
             else:
                 self.build_design_tree(sub_item,dt_dict[i]['sub_tree'],cfg_output_dict,cfg_dict,level,mode_dict)
-            if 'hdl_path' in dt_dict[i]:
-                sub_item.setToolTip(0,dt_dict[i]['hdl_path'])
-                sub_item.setToolTip(1,dt_dict[i]['help'])
 
         return item
 
@@ -541,11 +542,40 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
                     self.hidden_child(item,item_value,0)
             it.__iadd__(1)
 
+    def compare_dismatch_cfg(self,load_cfg_dict):
+        after_deal_dict = {}
+        new_item = '新增配置项设定以下默认值：\n'
+        has_delete_item = '以下配置项在新的配置下被删除：\n'
+        for cfg_item in self.cfg_output_dict:
+            if cfg_item in load_cfg_dict:
+                after_deal_dict[cfg_item] = load_cfg_dict[cfg_item]
+                del load_cfg_dict[cfg_item]
+            else:
+                after_deal_dict[cfg_item] = self.cfg_dict[cfg_item]['default']
+                new_item = new_item + ' -> '+cfg_item+': '+after_deal_dict[cfg_item]+'\n'
+                
+        if len(load_cfg_dict):
+            for item in load_cfg_dict:
+                has_delete_item = has_delete_item + ' -> '+item+': '+load_cfg_dict[item]+'\n'
+        if new_item:
+            self.textBrowser.setTextColor(QColor('orange'))
+            self.textBrowser.append(new_item)
+        if has_delete_item:
+            self.textBrowser.setTextColor(QColor('orange'))
+            self.textBrowser.append(has_delete_item)
+        return after_deal_dict
+
     def loadConfigFile(self):
         # get the input text
         exist_cfg=QFileDialog.getOpenFileName(self,'open file',self.saveDir)[0]
         if exist_cfg:
-            self.cfg_output_dict = readConfiguration.loadExistCfg(exist_cfg)
+            load_cfg_dict = readConfiguration.loadExistCfg(exist_cfg)
+            # 加载配置可能与当前主配置不一致，处理原则：
+            # 1. 多的删除;
+            # 2. 少的补充默认值;
+            # 3. 给出提示信息;
+            self.cfg_output_dict = self.compare_dismatch_cfg(load_cfg_dict)
+
             self.designTree_dict=readConfiguration.genDesignTree(self.cfg_file,self.usr_cfg_file)
             self.cfg_output_dict = dict(sorted(self.cfg_output_dict.items(),key=lambda x:x[0]))
             # 默认配置值检查

@@ -110,7 +110,8 @@ def readConfiguration(cfg_file,usr_cfg_file):
 
 def create_dict(tdict,inst_list,module_list,hdl_path,help_info,item_name,default):
     if len(inst_list)==1:
-        tdict[inst_list[0]] = dict()
+        if inst_list[0] not in tdict:
+            tdict[inst_list[0]] = dict()
         tdict[inst_list[0]]['modules']=module_list
         tdict[inst_list[0]]['hdl_path']=hdl_path
         tdict[inst_list[0]]['help']=help_info
