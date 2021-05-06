@@ -68,7 +68,7 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
         self.treeView.setRootIndex(self.dir_model.index(self.current_path))
 
         #set statusbar information
-        self.statusbar.showMessage('Any questions contact chaozhanghu@foxmail.com')
+        self.statusbar.showMessage('Any questions, please contact chaozhanghu@foxmail.com  @Qsmtool 21.05-0001')
 
         #create right menu
         self.treeView.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -488,7 +488,9 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
                 text,ok = QInputDialog.getText(self,'保存文件','文件名')
         if ok and text:
             outFile=open(self.saveDir+'/Makefile.%s' % (text),'w')
-            #textOut_cfg = saveConfiguration.saveConfigFile(self.tableWidget,self.treeWidget)
+            # 从gui界面保存配置，所见即所得，被关闭的子节点及叶节点将不出现在配置文件中
+            #textOut_cfg = saveConfiguration.saveConfigFileFromGui(self.tableWidget,self.treeWidget)
+            # 从主配置字典中保存配置，则被关闭的子节点及叶节点都会被保存入配置文件中
             textOut_cfg = saveConfiguration.saveConfigFile(self.cfg_output_dict)
             outFile.write(textOut_cfg)
             outFile.close()

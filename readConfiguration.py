@@ -111,12 +111,15 @@ def readConfiguration(cfg_file,usr_cfg_file):
 def create_dict(tdict,inst_list,module_list,hdl_path,help_info,item_name,default):
     if len(inst_list)==1:
         if inst_list[0] not in tdict:
+            # 如果该节点不在tree上，则该节点应该是叶节点
             tdict[inst_list[0]] = dict()
+            # 如果该节点已经在tree上且为支干，则应该保留其子节点
+            tdict[inst_list[0]]['sub_tree']=[]
+
         tdict[inst_list[0]]['modules']=module_list
         tdict[inst_list[0]]['hdl_path']=hdl_path
         tdict[inst_list[0]]['help']=help_info
         tdict[inst_list[0]]['item_name']=item_name
-        tdict[inst_list[0]]['sub_tree']=[]
         default_opt = ''
         for item in module_list:
             if item.split(':')[0] == default:
