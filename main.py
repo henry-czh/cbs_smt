@@ -15,7 +15,8 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 #导入designer工具生成的login模块
-from cbs_v1 import Ui_MainWindow
+#from cbs_v1 import Ui_MainWindow
+from uvs import Ui_smt
 import genDesignTree
 import readConfiguration
 import saveConfiguration
@@ -40,131 +41,131 @@ class QSpinBox(QSpinBox):
         if e.type() == QEvent.Wheel:
             e.ignore()
 
-class MyMainForm(QMainWindow, Ui_MainWindow):
+class MyMainForm(QMainWindow, Ui_smt):
     def __init__(self, parent=None):
         super(MyMainForm, self).__init__(parent)
         self.setupUi(self)
 
-        #system setting
-        self.cfg_file = os.getenv('MAIN_CFG_FILE')
-        self.usr_cfg_file = os.getenv('USR_CFG_FILE')
-        self.saveDir = os.getenv('CFG_SAVE_DIR')
-        #self.saveDir = os.path.abspath(os.path.join(os.getcwd(), "../config"))
+       # #system setting
+       # self.cfg_file = os.getenv('MAIN_CFG_FILE')
+       # self.usr_cfg_file = os.getenv('USR_CFG_FILE')
+       # self.saveDir = os.getenv('CFG_SAVE_DIR')
+       # #self.saveDir = os.path.abspath(os.path.join(os.getcwd(), "../config"))
 
-        self.subwindow.setWindowTitle('Basic Configuration')
-        icon_cfg = QIcon()
-        icon_cfg.addPixmap(QPixmap(":/ico/process.ico"), QIcon.Normal, QIcon.Off)
-        self.subwindow.setWindowIcon(icon_cfg)
-        self.subwindow_2.setWindowTitle('Increment Compile')
-        icon_incr = QIcon(":/ico/equalizer.ico")
-        self.subwindow_2.setWindowIcon(icon_incr)
+       # self.subwindow.setWindowTitle('Basic Configuration')
+       # icon_cfg = QIcon()
+       # icon_cfg.addPixmap(QPixmap(":/ico/process.ico"), QIcon.Normal, QIcon.Off)
+       # self.subwindow.setWindowIcon(icon_cfg)
+       # self.subwindow_2.setWindowTitle('Increment Compile')
+       # icon_incr = QIcon(":/ico/equalizer.ico")
+       # self.subwindow_2.setWindowIcon(icon_incr)
 
-        self.dir_model = QFileSystemModel()
-        self.dir_model.setReadOnly(True)
-        #self.current_path = QDir.currentPath()
-        self.current_path = os.getenv('CBS_HOME')
-        self.dir_model.setRootPath(self.current_path)
-        self.treeView.setModel(self.dir_model)
-        self.treeView.setRootIndex(self.dir_model.index(self.current_path))
+       # self.dir_model = QFileSystemModel()
+       # self.dir_model.setReadOnly(True)
+       # #self.current_path = QDir.currentPath()
+       # self.current_path = os.getenv('CBS_HOME')
+       # self.dir_model.setRootPath(self.current_path)
+       # self.treeView.setModel(self.dir_model)
+       # self.treeView.setRootIndex(self.dir_model.index(self.current_path))
 
-        #set statusbar information
-        self.statusbar.showMessage('Any questions, please contact chaozhanghu@foxmail.com  @Qsmtool 21.05-0001')
+       # #set statusbar information
+       # self.statusbar.showMessage('Any questions, please contact chaozhanghu@foxmail.com  @Qsmtool 21.05-0001')
 
-        #create right menu
-        self.treeView.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.treeView.customContextMenuRequested.connect(self.creat_rightmenu)
-        self.treeWidget.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.treeWidget.customContextMenuRequested.connect(self.creat_tree_rightmenu)
+       # #create right menu
+       # self.treeView.setContextMenuPolicy(Qt.CustomContextMenu)
+       # self.treeView.customContextMenuRequested.connect(self.creat_rightmenu)
+       # self.treeWidget.setContextMenuPolicy(Qt.CustomContextMenu)
+       # self.treeWidget.customContextMenuRequested.connect(self.creat_tree_rightmenu)
 
-        #tooltip
-        QToolTip.setFont(QFont('SansSerif',12))
-        self.treeView.setToolTip('单击右键可调出菜单')
+       # #tooltip
+       # QToolTip.setFont(QFont('SansSerif',12))
+       # self.treeView.setToolTip('单击右键可调出菜单')
 
-        #mdi multi window shou
-        self.mdiArea.addSubWindow(self.subwindow_3)
-        self.subwindow_3.show()
-        self.mdiArea.addSubWindow(self.subwindow_2)
-        self.subwindow_2.show()
-        self.mdiArea.addSubWindow(self.subwindow)
-        #self.subwindow.show()
-        self.subwindow.showMaximized()
+       # #mdi multi window shou
+       # self.mdiArea.addSubWindow(self.subwindow_3)
+       # self.subwindow_3.show()
+       # self.mdiArea.addSubWindow(self.subwindow_2)
+       # self.subwindow_2.show()
+       # self.mdiArea.addSubWindow(self.subwindow)
+       # #self.subwindow.show()
+       # self.subwindow.showMaximized()
 
-        #********************************************************
-        # connect buttons and function 
-        #********************************************************
-        # button "Apply"
-        self.pushButton.clicked.connect(self.applyConfig)
-        # button "Save"
-        self.pushButton_3.clicked.connect(self.saveConfigFile)
-        # button "Compare"
-        self.pushButton_5.clicked.connect(self.compareConfigFile)
-        # button "open"
+       # #********************************************************
+       # # connect buttons and function 
+       # #********************************************************
+       # # button "Apply"
+       # self.pushButton.clicked.connect(self.applyConfig)
+       # # button "Save"
+       # self.pushButton_3.clicked.connect(self.saveConfigFile)
+       # # button "Compare"
+       # self.pushButton_5.clicked.connect(self.compareConfigFile)
+       # # button "open"
 
-        self.pushButton_6.clicked.connect(self.loadConfigFile)
-        # tool button "reload"
-        self.actionreload.triggered.connect(self.reloadConfigFile)
-        # tool button "open"
-        self.actionopen.triggered.connect(self.loadConfigFile)
+       # self.pushButton_6.clicked.connect(self.loadConfigFile)
+       # # tool button "reload"
+       # self.actionreload.triggered.connect(self.reloadConfigFile)
+       # # tool button "open"
+       # self.actionopen.triggered.connect(self.loadConfigFile)
 
-        # action "Exit"
-        self.actionExit.triggered.connect(self.exitGui)
+       # # action "Exit"
+       # self.actionExit.triggered.connect(self.exitGui)
 
-        #read configuration file
-        self.cfg_dict,self.mode_dict = readConfiguration.readConfiguration(self.cfg_file,self.usr_cfg_file)
-        self.cfg_output_dict = readConfiguration.genOutPutCfg(self.cfg_file,self.usr_cfg_file)
-        self.cfg_dict = dict(sorted(self.cfg_dict.items(),key=lambda x:x[0]))
-        self.cfg_output_dict = dict(sorted(self.cfg_output_dict.items(),key=lambda x:x[0]))
-        # 默认配置值检查
-        self.check_default_cfg()
+       # #read configuration file
+       # self.cfg_dict,self.mode_dict = readConfiguration.readConfiguration(self.cfg_file,self.usr_cfg_file)
+       # self.cfg_output_dict = readConfiguration.genOutPutCfg(self.cfg_file,self.usr_cfg_file)
+       # self.cfg_dict = dict(sorted(self.cfg_dict.items(),key=lambda x:x[0]))
+       # self.cfg_output_dict = dict(sorted(self.cfg_output_dict.items(),key=lambda x:x[0]))
+       # # 默认配置值检查
+       # self.check_default_cfg()
 
-        #gen dict from cfg file
-        self.designTree_dict=readConfiguration.genDesignTree(self.cfg_file,self.usr_cfg_file)
-        
-        #default mode select
-        if len(self.mode_dict) >0:
-            self.current_mode = list(self.mode_dict.keys())[0]
-            self.current_mode_dict = self.mode_dict[self.current_mode]
-        else:
-            self.current_mode_dict = {}
+       # #gen dict from cfg file
+       # self.designTree_dict=readConfiguration.genDesignTree(self.cfg_file,self.usr_cfg_file)
+       # 
+       # #default mode select
+       # if len(self.mode_dict) >0:
+       #     self.current_mode = list(self.mode_dict.keys())[0]
+       #     self.current_mode_dict = self.mode_dict[self.current_mode]
+       # else:
+       #     self.current_mode_dict = {}
 
-        #****************************************************
-        # add tree item
-        #****************************************************
-        self.treeWidget.setColumnCount(3)
-        self.treeWidget.setHeaderLabels(['instance','module','item'])
-        self.treeWidget.setColumnWidth(0,300)
-        self.treeWidget.setColumnWidth(1,200)
+       # #****************************************************
+       # # add tree item
+       # #****************************************************
+       # self.treeWidget.setColumnCount(3)
+       # self.treeWidget.setHeaderLabels(['instance','module','item'])
+       # self.treeWidget.setColumnWidth(0,300)
+       # self.treeWidget.setColumnWidth(1,200)
 
-        self.build_design_tree(self.treeWidget,self.designTree_dict,self.cfg_output_dict,self.cfg_dict,0,self.current_mode_dict)
-        self.treeWidget.sortItems(0,Qt.AscendingOrder)
+       # self.build_design_tree(self.treeWidget,self.designTree_dict,self.cfg_output_dict,self.cfg_dict,0,self.current_mode_dict)
+       # self.treeWidget.sortItems(0,Qt.AscendingOrder)
 
-        #****************************************************
-        # add mode select
-        #****************************************************
-        self.comboBox.addItems(self.mode_dict.keys())
-        #编程和用户方式都会触发的是currentIndexChanged；只有用户操作才会触发的是activated()
-        self.comboBox.activated.connect(self.mode_select)
+       # #****************************************************
+       # # add mode select
+       # #****************************************************
+       # self.comboBox.addItems(self.mode_dict.keys())
+       # #编程和用户方式都会触发的是currentIndexChanged；只有用户操作才会触发的是activated()
+       # self.comboBox.activated.connect(self.mode_select)
 
 
-        #消除child節點
-        it = QTreeWidgetItemIterator(self.treeWidget)
-        while it.value():
-            item = it.value()
-            if not item.isHidden():
-                if item.toolTip(0):
-                    item_value = self.treeWidget.itemWidget(item,1).currentText().split(':')[0]
-                    self.hidden_child(item,item_value,0)
-            it.__iadd__(1)
+       # #消除child節點
+       # it = QTreeWidgetItemIterator(self.treeWidget)
+       # while it.value():
+       #     item = it.value()
+       #     if not item.isHidden():
+       #         if item.toolTip(0):
+       #             item_value = self.treeWidget.itemWidget(item,1).currentText().split(':')[0]
+       #             self.hidden_child(item,item_value,0)
+       #     it.__iadd__(1)
 
-        #********************************************************
-        # add table item
-        #********************************************************
-        self.tableWidget.setColumnCount(2)
-        self.tableWidget.setShowGrid(False)
-        self.tableWidget.setColumnWidth(0,300)
-        self.tableWidget.setColumnWidth(1,200)
-        self.tableWidget.setHorizontalHeaderLabels(['macro','value'])
-        self.build_macro_table(self.cfg_dict,self.cfg_output_dict,self.current_mode_dict)
+       # #********************************************************
+       # # add table item
+       # #********************************************************
+       # self.tableWidget.setColumnCount(2)
+       # self.tableWidget.setShowGrid(False)
+       # self.tableWidget.setColumnWidth(0,300)
+       # self.tableWidget.setColumnWidth(1,200)
+       # self.tableWidget.setHorizontalHeaderLabels(['macro','value'])
+       # self.build_macro_table(self.cfg_dict,self.cfg_output_dict,self.current_mode_dict)
 
     def mode_select(self):
         current_mode = self.comboBox.currentText()
