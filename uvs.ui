@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1248</width>
+    <width>1348</width>
     <height>816</height>
    </rect>
   </property>
@@ -53,9 +53,27 @@
         <enum>Qt::Horizontal</enum>
        </property>
        <widget class="QTabWidget" name="broswer_tabWidget">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <property name="minimumSize">
          <size>
-          <width>10</width>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>16777</width>
+          <height>16777</height>
+         </size>
+        </property>
+        <property name="baseSize">
+         <size>
+          <width>0</width>
           <height>0</height>
          </size>
         </property>
@@ -93,6 +111,18 @@
          <bool>true</bool>
         </property>
         <widget class="QWidget" name="FileBrowser">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="baseSize">
+          <size>
+           <width>170</width>
+           <height>100</height>
+          </size>
+         </property>
          <property name="accessibleName">
           <string/>
          </property>
@@ -106,10 +136,28 @@
           <item>
            <widget class="QTreeView" name="treeView_filebrowser">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>170</width>
+              <height>100</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>167772</width>
+              <height>167772</height>
+             </size>
+            </property>
+            <property name="baseSize">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
             </property>
             <property name="sizeAdjustPolicy">
              <enum>QAbstractScrollArea::AdjustToContents</enum>
@@ -119,12 +167,42 @@
          </layout>
         </widget>
         <widget class="QWidget" name="DesignHierarchy">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>170</width>
+           <height>100</height>
+          </size>
+         </property>
+         <property name="baseSize">
+          <size>
+           <width>170</width>
+           <height>100</height>
+          </size>
+         </property>
          <attribute name="title">
           <string>Design Hierarchy</string>
          </attribute>
          <layout class="QVBoxLayout" name="verticalLayout">
           <item>
            <widget class="QTreeWidget" name="treeWidget">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="baseSize">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
             <property name="font">
              <font>
               <family>DejaVu Sans Mono</family>
@@ -212,6 +290,18 @@
          <layout class="QHBoxLayout" name="horizontalLayout_3">
           <item>
            <widget class="QScrollArea" name="scrollArea_svg">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="baseSize">
+             <size>
+              <width>1700</width>
+              <height>800</height>
+             </size>
+            </property>
             <property name="widgetResizable">
              <bool>true</bool>
             </property>
@@ -220,9 +310,15 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>502</width>
-               <height>330</height>
+               <width>355</width>
+               <height>334</height>
               </rect>
+             </property>
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
              </property>
             </widget>
            </widget>
@@ -254,6 +350,12 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>0</height>
+        </size>
+       </property>
        <property name="maximumSize">
         <size>
          <width>16777215</width>
@@ -265,6 +367,9 @@
          <family>DejaVu Sans Mono</family>
          <pointsize>10</pointsize>
         </font>
+       </property>
+       <property name="toolTipDuration">
+        <number>0</number>
        </property>
        <property name="currentIndex">
         <number>0</number>
@@ -319,8 +424,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1248</width>
-     <height>25</height>
+     <width>1348</width>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

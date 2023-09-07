@@ -25,6 +25,7 @@ import icon
 from PyQt5.QtCore import QEvent
 from PyQt5.QtWidgets import QComboBox, QSpinBox
 from PyQt5.QtSvg import QSvgWidget
+from PyQt5.QtSvg import QSvgRenderer
 
 class QComboBox_czh(QComboBox):
     def __init__(self, parent=None):
@@ -62,17 +63,45 @@ class MyMainForm(QMainWindow, Ui_smt):
         #icon_incr = QIcon(":/ico/equalizer.ico")
         #self.macrowin.setWindowIcon(icon_incr)
 
-        # 创建一个 QSvgWidget 并加载 SVG 图像
-        svg_widget = QSvgWidget(self.scrollArea_svg)
-        #svg_widget.setGeometry(0, 0, self.svgtab.width(), self.svgtab.height())
-        # 创建一个垂直布局
-        layout = QVBoxLayout(self.scrollArea_svg)
-        # 将 QSvgWidget 添加到布局
-        layout.addWidget(svg_widget)
-        # 设置布局管理器，使 QSvgWidget 充满整个父窗口
-        self.scrollArea_svg.setLayout(layout)
+        ## 创建一个 QSvgWidget 并加载 SVG 图像
+        #svg_widget = QSvgWidget(self.scrollArea_svg)
+        ##svg_widget.setGeometry(0, 0, self.svgtab.width(), self.svgtab.height())
+        ## 创建一个垂直布局
+        #layout = QVBoxLayout(self.scrollArea_svg)
+        ## 将 QSvgWidget 添加到布局
+        #layout.addWidget(svg_widget)
+        ## 设置布局管理器，使 QSvgWidget 充满整个父窗口
+        #self.scrollArea_svg.setLayout(layout)
 
-        svg_widget.load(self.svgfile)  # 替换为你的 SVG 图像文件路径
+        #svg_widget.load(self.svgfile)  # 替换为你的 SVG 图像文件路径
+
+        # 创建 QGraphicsView 和 QGraphicsScene
+        self.view = QGraphicsView(self.scrollArea_svg)
+        #self.setCentralWidget(self.view)
+        self.scene = QGraphicsScene()
+        self.view.setScene(self.scene)
+        # 将 QGraphicsView 添加到滚动区域中
+        self.scrollArea_svg.setWidget(self.view)
+
+        # 创建一个 QSvgRenderer 并加载 SVG 图像
+        svg_renderer = QSvgRenderer(self.svgfile)  # 替换为你的 SVG 图像文件路径
+
+        # 创建一个 QImage 作为渲染目标
+        svg_size = svg_renderer.defaultSize()
+        image = QImage(svg_size.width(), svg_size.height(), QImage.Format_ARGB32)
+        image.fill(Qt.transparent)
+
+        # 创建一个 QPainter，将 SVG 图像绘制到 QImage 上
+        painter = QPainter(image)
+        svg_renderer.render(painter)
+        painter.end()
+
+        # 修改图像中某个元素的颜色
+        #self.modifyColor(image)
+
+        # 创建一个 QGraphicsPixmapItem 来显示修改后的图像
+        pixmap_item = QGraphicsPixmapItem(QPixmap.fromImage(image))
+        self.scene.addItem(pixmap_item)
 
         # 创建一个 文件浏览窗口
         self.dir_model = QFileSystemModel()
@@ -84,7 +113,7 @@ class MyMainForm(QMainWindow, Ui_smt):
         self.treeView_filebrowser.setRootIndex(self.dir_model.index(self.current_path))
 
         #set statusbar information
-        self.statusbar.showMessage('Any questions, please contact chaozhanghu@foxmail.com  @Qsmtool 21.05-0001')
+        self.statusbar.showMessage('Any questions, please contact chaozhanghu@phytium.com.cn  @Qsmtool 23.09-0001')
         self.statusbar.show()
 
        # #create right menu
