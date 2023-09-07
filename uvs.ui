@@ -9,13 +9,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1329</width>
-    <height>957</height>
+    <width>1248</width>
+    <height>816</height>
    </rect>
   </property>
   <property name="font">
    <font>
-    <family>Monospace</family>
+    <family>DejaVu Sans Mono</family>
+    <pointsize>10</pointsize>
    </font>
   </property>
   <property name="windowTitle">
@@ -51,7 +52,7 @@
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
-       <widget class="QTabWidget" name="tabWidget">
+       <widget class="QTabWidget" name="broswer_tabWidget">
         <property name="minimumSize">
          <size>
           <width>10</width>
@@ -76,6 +77,9 @@
         <property name="whatsThis">
          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;File Browser&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
+        <property name="autoFillBackground">
+         <bool>true</bool>
+        </property>
         <property name="tabPosition">
          <enum>QTabWidget::South</enum>
         </property>
@@ -83,7 +87,10 @@
          <enum>QTabWidget::Rounded</enum>
         </property>
         <property name="currentIndex">
-         <number>1</number>
+         <number>0</number>
+        </property>
+        <property name="tabsClosable">
+         <bool>true</bool>
         </property>
         <widget class="QWidget" name="FileBrowser">
          <property name="accessibleName">
@@ -95,9 +102,15 @@
          <attribute name="title">
           <string>File Browser</string>
          </attribute>
-         <layout class="QVBoxLayout" name="verticalLayout_4">
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
           <item>
            <widget class="QTreeView" name="treeView_filebrowser">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="sizeAdjustPolicy">
              <enum>QAbstractScrollArea::AdjustToContents</enum>
             </property>
@@ -140,88 +153,97 @@
          </layout>
         </widget>
        </widget>
-       <widget class="QMdiArea" name="mdiArea">
+       <widget class="QTabWidget" name="main_tabWidget">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="baseSize">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
         <property name="font">
          <font>
-          <family>Monospace</family>
+          <family>DejaVu Sans Mono</family>
           <pointsize>10</pointsize>
          </font>
         </property>
         <property name="contextMenuPolicy">
-         <enum>Qt::CustomContextMenu</enum>
-        </property>
-        <property name="layoutDirection">
-         <enum>Qt::LeftToRight</enum>
-        </property>
-        <property name="autoFillBackground">
-         <bool>true</bool>
-        </property>
-        <property name="frameShape">
-         <enum>QFrame::NoFrame</enum>
-        </property>
-        <property name="frameShadow">
-         <enum>QFrame::Plain</enum>
-        </property>
-        <property name="verticalScrollBarPolicy">
-         <enum>Qt::ScrollBarAsNeeded</enum>
-        </property>
-        <property name="horizontalScrollBarPolicy">
-         <enum>Qt::ScrollBarAsNeeded</enum>
-        </property>
-        <property name="background">
-         <brush brushstyle="Dense5Pattern">
-          <color alpha="255">
-           <red>159</red>
-           <green>159</green>
-           <blue>159</blue>
-          </color>
-         </brush>
-        </property>
-        <property name="activationOrder">
-         <enum>QMdiArea::ActivationHistoryOrder</enum>
-        </property>
-        <property name="viewMode">
-         <enum>QMdiArea::TabbedView</enum>
-        </property>
-        <property name="documentMode">
-         <bool>true</bool>
-        </property>
-        <property name="tabsMovable">
-         <bool>true</bool>
-        </property>
-        <property name="tabShape">
-         <enum>QTabWidget::Rounded</enum>
+         <enum>Qt::DefaultContextMenu</enum>
         </property>
         <property name="tabPosition">
          <enum>QTabWidget::West</enum>
         </property>
-        <widget class="QWidget" name="svgwin">
+        <property name="currentIndex">
+         <number>0</number>
+        </property>
+        <property name="tabsClosable">
+         <bool>true</bool>
+        </property>
+        <property name="movable">
+         <bool>true</bool>
+        </property>
+        <widget class="QWidget" name="svgtab">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+           <horstretch>3</horstretch>
+           <verstretch>4</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
          <property name="font">
           <font>
-           <family>Monospace</family>
+           <family>DejaVu Sans Mono</family>
            <pointsize>10</pointsize>
           </font>
          </property>
-         <property name="windowTitle">
-          <string>Subwindow</string>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">border-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(0, 0, 0, 0), stop:0.52 rgba(0, 0, 0, 0), stop:0.565 rgba(82, 121, 76, 33), stop:0.65 rgba(159, 235, 148, 64), stop:0.721925 rgba(255, 238, 150, 129), stop:0.77 rgba(255, 128, 128, 204), stop:0.89 rgba(191, 128, 255, 64), stop:1 rgba(0, 0, 0, 0));</string>
-         </property>
+         <attribute name="title">
+          <string>svgtab</string>
+         </attribute>
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <item>
+           <widget class="QScrollArea" name="scrollArea_svg">
+            <property name="widgetResizable">
+             <bool>true</bool>
+            </property>
+            <widget class="QWidget" name="scrollAreaWidgetContents">
+             <property name="geometry">
+              <rect>
+               <x>0</x>
+               <y>0</y>
+               <width>502</width>
+               <height>330</height>
+              </rect>
+             </property>
+            </widget>
+           </widget>
+          </item>
+         </layout>
         </widget>
-        <widget class="QWidget" name="macrowin">
-         <property name="windowTitle">
-          <string>Subwindow</string>
+        <widget class="QWidget" name="macrotab">
+         <property name="font">
+          <font>
+           <family>DejaVu Sans Mono</family>
+           <pointsize>10</pointsize>
+          </font>
          </property>
-         <property name="whatsThis">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Increment Compile&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <layout class="QGridLayout" name="gridLayout"/>
+         <attribute name="title">
+          <string>macrotab</string>
+         </attribute>
         </widget>
-        <widget class="QWidget" name="toolwin">
-         <property name="windowTitle">
-          <string>Subwindow</string>
-         </property>
+        <widget class="QWidget" name="tooltab">
+         <attribute name="title">
+          <string>tooltab</string>
+         </attribute>
         </widget>
        </widget>
       </widget>
@@ -297,8 +319,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1329</width>
-     <height>28</height>
+     <width>1248</width>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -392,6 +414,7 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="separator"/>
   </widget>
   <action name="actionsave">
    <property name="icon">

@@ -24,6 +24,7 @@ import icon
 
 from PyQt5.QtCore import QEvent
 from PyQt5.QtWidgets import QComboBox, QSpinBox
+from PyQt5.QtSvg import QSvgWidget
 
 class QComboBox_czh(QComboBox):
     def __init__(self, parent=None):
@@ -46,30 +47,45 @@ class MyMainForm(QMainWindow, Ui_smt):
         super(MyMainForm, self).__init__(parent)
         self.setupUi(self)
 
-       # #system setting
-       # self.cfg_file = os.getenv('MAIN_CFG_FILE')
-       # self.usr_cfg_file = os.getenv('USR_CFG_FILE')
-       # self.saveDir = os.getenv('CFG_SAVE_DIR')
-       # #self.saveDir = os.path.abspath(os.path.join(os.getcwd(), "../config"))
+        #system setting
+        self.cfg_file = os.getenv('MAIN_CFG_FILE')
+        self.usr_cfg_file = os.getenv('USR_CFG_FILE')
+        self.saveDir = os.getenv('CFG_SAVE_DIR')
+        self.svgfile = os.getenv('SVG_FILE')
+        #self.saveDir = os.path.abspath(os.path.join(os.getcwd(), "../config"))
 
-       # self.subwindow.setWindowTitle('Basic Configuration')
-       # icon_cfg = QIcon()
-       # icon_cfg.addPixmap(QPixmap(":/ico/process.ico"), QIcon.Normal, QIcon.Off)
-       # self.subwindow.setWindowIcon(icon_cfg)
-       # self.subwindow_2.setWindowTitle('Increment Compile')
-       # icon_incr = QIcon(":/ico/equalizer.ico")
-       # self.subwindow_2.setWindowIcon(icon_incr)
+        #self.svgwin.setWindowTitle('Basic Configuration')
+        #icon_cfg = QIcon()
+        #icon_cfg.addPixmap(QPixmap(":/ico/process.ico"), QIcon.Normal, QIcon.Off)
+        #self.svgwin.setWindowIcon(icon_cfg)
+        #self.macrowin.setWindowTitle('Increment Compile')
+        #icon_incr = QIcon(":/ico/equalizer.ico")
+        #self.macrowin.setWindowIcon(icon_incr)
 
-       # self.dir_model = QFileSystemModel()
-       # self.dir_model.setReadOnly(True)
-       # #self.current_path = QDir.currentPath()
-       # self.current_path = os.getenv('CBS_HOME')
-       # self.dir_model.setRootPath(self.current_path)
-       # self.treeView.setModel(self.dir_model)
-       # self.treeView.setRootIndex(self.dir_model.index(self.current_path))
+        # 创建一个 QSvgWidget 并加载 SVG 图像
+        svg_widget = QSvgWidget(self.scrollArea_svg)
+        #svg_widget.setGeometry(0, 0, self.svgtab.width(), self.svgtab.height())
+        # 创建一个垂直布局
+        layout = QVBoxLayout(self.scrollArea_svg)
+        # 将 QSvgWidget 添加到布局
+        layout.addWidget(svg_widget)
+        # 设置布局管理器，使 QSvgWidget 充满整个父窗口
+        self.scrollArea_svg.setLayout(layout)
 
-       # #set statusbar information
-       # self.statusbar.showMessage('Any questions, please contact chaozhanghu@foxmail.com  @Qsmtool 21.05-0001')
+        svg_widget.load(self.svgfile)  # 替换为你的 SVG 图像文件路径
+
+        # 创建一个 文件浏览窗口
+        self.dir_model = QFileSystemModel()
+        self.dir_model.setReadOnly(True)
+        #self.current_path = QDir.currentPath()
+        self.current_path = os.getenv('CBS_HOME')
+        self.dir_model.setRootPath(self.current_path)
+        self.treeView_filebrowser.setModel(self.dir_model)
+        self.treeView_filebrowser.setRootIndex(self.dir_model.index(self.current_path))
+
+        #set statusbar information
+        self.statusbar.showMessage('Any questions, please contact chaozhanghu@foxmail.com  @Qsmtool 21.05-0001')
+        self.statusbar.show()
 
        # #create right menu
        # self.treeView.setContextMenuPolicy(Qt.CustomContextMenu)
