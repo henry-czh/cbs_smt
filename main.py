@@ -5,16 +5,19 @@
 # Created by: PyQt5 UI code generator 5.11.3
 #
 # WARNING! All changes made in this file will be lost!
-#导入程序运行必须模块
+#��������������������
 import sys
 import os
 import copy
-#PyQt5中使用的基本控件都在PyQt5.QtWidgets模块中
+import subprocess
+import time
+#PyQt5��������������������PyQt5.QtWidgets������
 #from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
-#导入designer工具生成的login模块
+from xml.etree import ElementTree as ET
+#����designer����������login����
 #from cbs_v1 import Ui_MainWindow
 from uvs import Ui_smt
 import genDesignTree
@@ -25,7 +28,7 @@ import icon
 from PyQt5.QtCore import QEvent
 from PyQt5.QtWidgets import QComboBox, QSpinBox
 from PyQt5.QtSvg import QSvgWidget
-from PyQt5.QtSvg import QSvgRenderer
+from PyQt5.QtSvg import QSvgRenderer, QGraphicsSvgItem
 
 class QComboBox_czh(QComboBox):
     def __init__(self, parent=None):
@@ -42,6 +45,31 @@ class QSpinBox(QSpinBox):
     def wheelEvent(self, e):
         if e.type() == QEvent.Wheel:
             e.ignore()
+
+class ColoredTextBrowser(QTextBrowser):
+    def __init__(self, parent=None):
+        super(ColoredTextBrowser,self).__init__(parent)
+
+    def consel(self, text, color):
+        # 获取当前文本光标
+        cursor = self.textCursor()
+        t = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
+
+        # 创建文本字符格式，设置颜色
+        char_format = QTextCharFormat()
+
+        char_format.setForeground(QColor('blue'))
+        # 在光标处应用字符格式
+        cursor.setCharFormat(char_format)
+        # 插入文本
+        cursor.insertText('[%s]# ' % (t))
+
+        char_format.setForeground(QColor(color))
+        cursor.setCharFormat(char_format)
+        cursor.insertText(text+'\n')
+
+        # 恢复默认字符格式
+        cursor.setCharFormat(QTextCharFormat())
 
 class MyMainForm(QMainWindow, Ui_smt):
     def __init__(self, parent=None):
@@ -63,47 +91,57 @@ class MyMainForm(QMainWindow, Ui_smt):
         #icon_incr = QIcon(":/ico/equalizer.ico")
         #self.macrowin.setWindowIcon(icon_incr)
 
-        ## 创建一个 QSvgWidget 并加载 SVG 图像
-        #svg_widget = QSvgWidget(self.scrollArea_svg)
-        ##svg_widget.setGeometry(0, 0, self.svgtab.width(), self.svgtab.height())
-        ## 创建一个垂直布局
-        #layout = QVBoxLayout(self.scrollArea_svg)
-        ## 将 QSvgWidget 添加到布局
-        #layout.addWidget(svg_widget)
-        ## 设置布局管理器，使 QSvgWidget 充满整个父窗口
-        #self.scrollArea_svg.setLayout(layout)
+        self.textBrowser = ColoredTextBrowser(self.Consel)
+        font = QFont()
+        font.setFamily("Monospace")
+        font.setPointSize(10)
+        self.textBrowser.setFont(font)
+        self.textBrowser.setObjectName("textBrowser")
+        self.verticalLayout_5.addWidget(self.textBrowser)
 
-        #svg_widget.load(self.svgfile)  # 替换为你的 SVG 图像文件路径
-
-        # 创建 QGraphicsView 和 QGraphicsScene
+        #+++++++++++++++++++++++++++++++++++++++++++++++++++++
+        #  QGraphicsView  QGraphicsScene
+        #+++++++++++++++++++++++++++++++++++++++++++++++++++++
         self.view = QGraphicsView(self.scrollArea_svg)
         #self.setCentralWidget(self.view)
         self.scene = QGraphicsScene()
         self.view.setScene(self.scene)
-        # 将 QGraphicsView 添加到滚动区域中
+        # �� QGraphicsView ����������������
         self.scrollArea_svg.setWidget(self.view)
 
-        # 创建一个 QSvgRenderer 并加载 SVG 图像
-        svg_renderer = QSvgRenderer(self.svgfile)  # 替换为你的 SVG 图像文件路径
+        # QSvgRenderer SVG 
+        self.svg_renderer = QSvgRenderer(self.svgfile)
 
-        # 创建一个 QImage 作为渲染目标
-        svg_size = svg_renderer.defaultSize()
-        image = QImage(svg_size.width(), svg_size.height(), QImage.Format_ARGB32)
-        image.fill(Qt.transparent)
+        # 创建可交互的 QGraphicsSvgItem
+        svg_item = QGraphicsSvgItem()
+        svg_item.setSharedRenderer(self.svg_renderer)
 
-        # 创建一个 QPainter，将 SVG 图像绘制到 QImage 上
-        painter = QPainter(image)
-        svg_renderer.render(painter)
-        painter.end()
+        # 将图形项添加到场景中
+        self.scene.addItem(svg_item)
 
-        # 修改图像中某个元素的颜色
-        #self.modifyColor(image)
+        # 连接鼠标点击事件的处理函数
+        self.view.mousePressEvent = self.Click_Svg
 
-        # 创建一个 QGraphicsPixmapItem 来显示修改后的图像
-        pixmap_item = QGraphicsPixmapItem(QPixmap.fromImage(image))
-        self.scene.addItem(pixmap_item)
+        ## �������� QImage ������������
+        #svg_size = self.svg_renderer.defaultSize()
+        #image = QImage(svg_size.width(), svg_size.height(), QImage.Format_ARGB32)
+        #image.fill(Qt.transparent)
 
-        # 创建一个 文件浏览窗口
+        ## �������� QPainter���� SVG ���������� QImage ��
+        #painter = QPainter(image)
+        #self.svg_renderer.render(painter)
+        #painter.end()
+
+        ## ������������������������
+        ##self.modifyColor(image)
+
+        ## �������� QGraphicsPixmapItem ������������������
+        #pixmap_item = QGraphicsPixmapItem(QPixmap.fromImage(image))
+        #self.scene.addItem(pixmap_item)
+
+        #+++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # �������� ������������
+        #+++++++++++++++++++++++++++++++++++++++++++++++++++++
         self.dir_model = QFileSystemModel()
         self.dir_model.setReadOnly(True)
         #self.current_path = QDir.currentPath()
@@ -111,20 +149,23 @@ class MyMainForm(QMainWindow, Ui_smt):
         self.dir_model.setRootPath(self.current_path)
         self.treeView_filebrowser.setModel(self.dir_model)
         self.treeView_filebrowser.setRootIndex(self.dir_model.index(self.current_path))
+        self.treeView_filebrowser.setColumnWidth(0, 300)
 
-        #set statusbar information
-        self.statusbar.showMessage('Any questions, please contact chaozhanghu@phytium.com.cn  @Qsmtool 23.09-0001')
+        #create right menu
+        self.treeView_filebrowser.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.treeView_filebrowser.customContextMenuRequested.connect(self.creat_rightmenu)
+        self.treeWidget.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.treeWidget.customContextMenuRequested.connect(self.creat_tree_rightmenu)
+        
+        #tooltip
+        QToolTip.setFont(QFont('SansSerif',10))
+        self.treeView_filebrowser.setToolTip('单击右键可调出菜单')
+
+        #+++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # Set statusbar information
+        #+++++++++++++++++++++++++++++++++++++++++++++++++++++
+        self.statusbar.showMessage('如有疑问, 请联系 chaozhanghu@phytium.com.cn  @Qsmtool 23.09-0001')
         self.statusbar.show()
-
-       # #create right menu
-       # self.treeView.setContextMenuPolicy(Qt.CustomContextMenu)
-       # self.treeView.customContextMenuRequested.connect(self.creat_rightmenu)
-       # self.treeWidget.setContextMenuPolicy(Qt.CustomContextMenu)
-       # self.treeWidget.customContextMenuRequested.connect(self.creat_tree_rightmenu)
-
-       # #tooltip
-       # QToolTip.setFont(QFont('SansSerif',12))
-       # self.treeView.setToolTip('单击右键可调出菜单')
 
        # #mdi multi window shou
        # self.mdiArea.addSubWindow(self.subwindow_3)
@@ -149,11 +190,11 @@ class MyMainForm(QMainWindow, Ui_smt):
        # self.pushButton_6.clicked.connect(self.loadConfigFile)
        # # tool button "reload"
        # self.actionreload.triggered.connect(self.reloadConfigFile)
-       # # tool button "open"
-       # self.actionopen.triggered.connect(self.loadConfigFile)
+        # tool button "open"
+        self.actionopen.triggered.connect(self.loadConfigFile)
 
-       # # action "Exit"
-       # self.actionExit.triggered.connect(self.exitGui)
+        # action "Exit"
+        self.actionExit.triggered.connect(self.exitGui)
 
        # #read configuration file
        # self.cfg_dict,self.mode_dict = readConfiguration.readConfiguration(self.cfg_file,self.usr_cfg_file)
@@ -211,6 +252,42 @@ class MyMainForm(QMainWindow, Ui_smt):
        # self.tableWidget.setColumnWidth(1,200)
        # self.tableWidget.setHorizontalHeaderLabels(['macro','value'])
        # self.build_macro_table(self.cfg_dict,self.cfg_output_dict,self.current_mode_dict)
+
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #   xxxxxxxxxx      Functions       xxxxxxxxxxxx
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def Click_Svg(self, event):
+        # 这是鼠标点击事件的处理函数
+        # event 是一个鼠标事件对象，你可以在这里实现自定义的交互逻辑
+        pos = self.view.mapToScene(event.pos())  # 将窗口坐标映射到场景坐标
+        items = self.scene.items(pos)
+        for item in items:
+            if isinstance(item, QGraphicsSvgItem):
+                # 如果点击了 SVG 图像，检查是否有超链接
+                if self.hasHyperlink(item):
+                    # 执行超链接相关的操作
+                    self.textBrowser.consel("Clicked on SVG item with hyperlink",'green')
+                else:
+                    self.textBrowser.consel("no", 'red')
+
+    def hasHyperlink(self, svg_item):
+        # 检查 QGraphicsSvgItem 是否包含超链接
+        # 解析 SVG 图像以查找 <a> 元素并获取其超链接目标
+        svg_tree = ET.parse(self.svgfile)
+        root = svg_tree.getroot()
+        for elem in root.iter():
+            if elem.tag.endswith('}a'):
+                xlink_href = elem.get('{http://www.w3.org/1999/xlink}href')
+                if xlink_href and svg_item.contains(svg_item.mapFromScene(svg_item.sceneBoundingRect().topLeft())):
+                    return True
+        return False
+
+    def open_with_gvim(self):
+        index = self.treeView_filebrowser.currentIndex()
+        if index.isValid() and not self.dir_model.isDir(index):
+            file_name = self.dir_model.filePath(index)
+            self.textBrowser.consel("打开文件 %s" % (file_name), 'black')
+            os.system('gvim %s' % (file_name))
 
     def mode_select(self):
         current_mode = self.comboBox.currentText()
@@ -711,10 +788,6 @@ class MyMainForm(QMainWindow, Ui_smt):
         if child_count>0:
             for i in range(child_count):
                 self.collapse_item(item.child(i))
-
-    def open_with_gvim(self):
-        file_name = self.dir_model.filePath(self.treeView.currentIndex())
-        os.system('gvim %s' % (file_name))
 
 if __name__ == "__main__":
     QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling)

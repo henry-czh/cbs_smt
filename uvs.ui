@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1348</width>
+    <width>1245</width>
     <height>816</height>
    </rect>
   </property>
@@ -45,10 +45,22 @@
    <layout class="QHBoxLayout" name="horizontalLayout">
     <item>
      <widget class="QSplitter" name="splitter_2">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>8</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="orientation">
        <enum>Qt::Vertical</enum>
       </property>
       <widget class="QSplitter" name="splitter">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>8</verstretch>
+        </sizepolicy>
+       </property>
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
@@ -56,7 +68,7 @@
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
           <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
+          <verstretch>3</verstretch>
          </sizepolicy>
         </property>
         <property name="minimumSize">
@@ -162,6 +174,9 @@
             <property name="sizeAdjustPolicy">
              <enum>QAbstractScrollArea::AdjustToContents</enum>
             </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
            </widget>
           </item>
          </layout>
@@ -232,6 +247,12 @@
         </widget>
        </widget>
        <widget class="QTabWidget" name="main_tabWidget">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <horstretch>1</horstretch>
+          <verstretch>7</verstretch>
+         </sizepolicy>
+        </property>
         <property name="minimumSize">
          <size>
           <width>0</width>
@@ -310,7 +331,7 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>355</width>
+               <width>891</width>
                <height>334</height>
               </rect>
              </property>
@@ -346,8 +367,8 @@
       <widget class="QTabWidget" name="tabWidget_2">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
+         <horstretch>1</horstretch>
+         <verstretch>2</verstretch>
         </sizepolicy>
        </property>
        <property name="minimumSize">
@@ -384,18 +405,7 @@
         <attribute name="title">
          <string>Consel</string>
         </attribute>
-        <layout class="QVBoxLayout" name="verticalLayout_5">
-         <item>
-          <widget class="QTextBrowser" name="textBrowser">
-           <property name="font">
-            <font>
-             <family>Monospace</family>
-             <pointsize>10</pointsize>
-            </font>
-           </property>
-          </widget>
-         </item>
-        </layout>
+        <layout class="QVBoxLayout" name="verticalLayout_5"/>
        </widget>
        <widget class="QWidget" name="pewview">
         <attribute name="title">
@@ -424,7 +434,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1348</width>
+     <width>1245</width>
      <height>22</height>
     </rect>
    </property>
