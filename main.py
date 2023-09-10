@@ -49,8 +49,9 @@ class QSpinBox(QSpinBox):
 class ColoredTextBrowser(QTextBrowser):
     def __init__(self, parent=None):
         super(ColoredTextBrowser,self).__init__(parent)
+        self.tips()
 
-    def consel(self, text, color):
+    def tips(self):
         # 获取当前文本光标
         cursor = self.textCursor()
         t = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
@@ -64,9 +65,18 @@ class ColoredTextBrowser(QTextBrowser):
         # 插入文本
         cursor.insertText('[%s]# ' % (t))
 
+    def consel(self, text, color):
+        # 获取当前文本光标
+        cursor = self.textCursor()
+
+        # 创建文本字符格式，设置颜色
+        char_format = QTextCharFormat()
+
         char_format.setForeground(QColor(color))
         cursor.setCharFormat(char_format)
         cursor.insertText(text+'\n')
+
+        self.tips()
 
         # 恢复默认字符格式
         cursor.setCharFormat(QTextCharFormat())
@@ -263,23 +273,39 @@ class MyMainForm(QMainWindow, Ui_smt):
         items = self.scene.items(pos)
         for item in items:
             if isinstance(item, QGraphicsSvgItem):
+                # 找到了 SVG 图像项
+                # 获取元素的属性并显示
+                self.textBrowser.consel("Clicked on an SVG item at position (%d, %d)" %(pos.x(), pos.y()), 'black')
+                element_index = item.renderer().elementAt(pos.toPoint())
+                self.textBrowser.consel(element_index, 'black')
+                element_attributes = item.renderer().elementAttributes(item.renderer().elementAt(pos.toPoint()))
+                for attr_name, attr_value in element_attributes.items():
+                    #print(f"{attr_name}: {attr_value}")
+                    self.textBrowser.consel("(%s, %s)" %(attr_name, attr_value), 'black')
                 # 如果点击了 SVG 图像，检查是否有超链接
-                if self.hasHyperlink(item):
-                    # 执行超链接相关的操作
-                    self.textBrowser.consel("Clicked on SVG item with hyperlink",'green')
-                else:
-                    self.textBrowser.consel("no", 'red')
+                #if self.hasHyperlink(item, pos):
+                #    # 执行超链接相关的操作
+                #    self.textBrowser.consel("Clicked on SVG item with hyperlink",'green')
+                #else:
+                #    self.textBrowser.consel("no", 'red')
 
-    def hasHyperlink(self, svg_item):
+    def hasHyperlink(self, svg_item, pos):
         # 检查 QGraphicsSvgItem 是否包含超链接
         # 解析 SVG 图像以查找 <a> 元素并获取其超链接目标
         svg_tree = ET.parse(self.svgfile)
         root = svg_tree.getroot()
         for elem in root.iter():
-            if elem.tag.endswith('}a'):
-                xlink_href = elem.get('{http://www.w3.org/1999/xlink}href')
-                if xlink_href and svg_item.contains(svg_item.mapFromScene(svg_item.sceneBoundingRect().topLeft())):
-                    return True
+            if not svg_item.contains(svg_item.mapFromScene(pos)):
+                continue
+            if not elem.tag.endswith('}a'):
+                continue
+            xlink_href = elem.get('{http://www.w3.org/1999/xlink}href')
+            self.textBrowser.consel(xlink_href, 'black')
+            #if xlink_href and svg_item.contains(svg_item.mapFromScene(svg_item.sceneBoundingRect().topLeft())):
+            if xlink_href:
+                return True
+            else:
+                return False
         return False
 
     def open_with_gvim(self):
