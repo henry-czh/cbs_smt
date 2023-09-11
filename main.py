@@ -120,11 +120,12 @@ class MyMainForm(QMainWindow, Ui_smt):
         self.scrollArea_svg.setWidget(self.view)
 
         # QSvgRenderer SVG 
-        self.svg_renderer = QSvgRenderer(self.svgfile)
+        # self.svg_renderer = QSvgRenderer(self.svgfile)
 
         # 创建可交互的 QGraphicsSvgItem
-        svg_item = QGraphicsSvgItem()
-        svg_item.setSharedRenderer(self.svg_renderer)
+        svg_item = QGraphicsSvgItem(self.svgfile)
+        self.textBrowser.consel(svg_item.elementId(), 'black')
+        #svg_item.setSharedRenderer(self.svg_renderer)
 
         # 将图形项添加到场景中
         self.scene.addItem(svg_item)
@@ -270,18 +271,20 @@ class MyMainForm(QMainWindow, Ui_smt):
         # 这是鼠标点击事件的处理函数
         # event 是一个鼠标事件对象，你可以在这里实现自定义的交互逻辑
         pos = self.view.mapToScene(event.pos())  # 将窗口坐标映射到场景坐标
-        items = self.scene.items(pos)
-        for item in items:
-            if isinstance(item, QGraphicsSvgItem):
+        #items = self.scene.items(pos)
+        items = self.scene.itemAt(pos, self.view.transform())
+        #for item in items:
+        if isinstance(items, QGraphicsSvgItem):
+            self.textBrowser.consel(items.elementId(), 'black')
                 # 找到了 SVG 图像项
                 # 获取元素的属性并显示
-                self.textBrowser.consel("Clicked on an SVG item at position (%d, %d)" %(pos.x(), pos.y()), 'black')
-                element_index = item.renderer().elementAt(pos.toPoint())
-                self.textBrowser.consel(element_index, 'black')
-                element_attributes = item.renderer().elementAttributes(item.renderer().elementAt(pos.toPoint()))
-                for attr_name, attr_value in element_attributes.items():
-                    #print(f"{attr_name}: {attr_value}")
-                    self.textBrowser.consel("(%s, %s)" %(attr_name, attr_value), 'black')
+                #self.textBrowser.consel("Clicked on an SVG item at position (%d, %d)" %(pos.x(), pos.y()), 'black')
+                #element_index = item.renderer().elementAt(pos.toPoint())
+                #self.textBrowser.consel(element_index, 'black')
+                #element_attributes = item.renderer().elementAttributes(item.renderer().elementAt(pos.toPoint()))
+                #for attr_name, attr_value in element_attributes.items():
+                #    #print(f"{attr_name}: {attr_value}")
+                #    self.textBrowser.consel("(%s, %s)" %(attr_name, attr_value), 'black')
                 # 如果点击了 SVG 图像，检查是否有超链接
                 #if self.hasHyperlink(item, pos):
                 #    # 执行超链接相关的操作
