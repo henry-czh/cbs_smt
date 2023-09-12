@@ -29,6 +29,9 @@ from PyQt5.QtCore import QEvent
 from PyQt5.QtWidgets import QComboBox, QSpinBox
 from PyQt5.QtSvg import QSvgWidget
 from PyQt5.QtSvg import QSvgRenderer, QGraphicsSvgItem
+from PyQt5.QtWebEngineWidgets import QWebEnginePage
+from PyQt5.QtWebEngineWidgets import QWebEngineView
+from PyQt5.QtWebChannel import QWebChannel
 
 class QComboBox_czh(QComboBox):
     def __init__(self, parent=None):
@@ -91,6 +94,7 @@ class MyMainForm(QMainWindow, Ui_smt):
         self.usr_cfg_file = os.getenv('USR_CFG_FILE')
         self.saveDir = os.getenv('CFG_SAVE_DIR')
         self.svgfile = os.getenv('SVG_FILE')
+        self.html_file = os.getenv('HTML_FILE')
         #self.saveDir = os.path.abspath(os.path.join(os.getcwd(), "../config"))
 
         #self.svgwin.setWindowTitle('Basic Configuration')
@@ -151,7 +155,35 @@ class MyMainForm(QMainWindow, Ui_smt):
         #self.scene.addItem(pixmap_item)
 
         #+++++++++++++++++++++++++++++++++++++++++++++++++++++
-        # �������� ������������
+        # 创建一个web界面
+        #+++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 创建 QWebEngineView 组件
+        self.web_view = QWebEngineView()
+        self.main_tabWidget.addTab(self.web_view, "Tab 3")
+
+        # 加载 HTML 文件或内容
+        html_content = """
+        <html>
+        <body>
+            <h1>Hello from HTML</h1>
+            <button onclick="pyqtFunction()">Call PyQt Function</button>
+            <p id="result"></p>
+            <script>
+                function pyqtFunction() {
+                    var resultParagraph = document.getElementById("result");
+                    resultParagraph.innerHTML = "PyQt Function Called!";
+                }
+            </script>
+            <object data=%s type="image/svg+xml"></object>
+        </body>
+        </html>
+        """ % (self.svgfile)
+
+        self.web_view.setHtml(html_content)
+        #self.web_view.setHtml(self.html_file)
+
+        #+++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 创建一个文件浏览器
         #+++++++++++++++++++++++++++++++++++++++++++++++++++++
         self.dir_model = QFileSystemModel()
         self.dir_model.setReadOnly(True)
