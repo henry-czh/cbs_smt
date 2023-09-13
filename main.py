@@ -23,6 +23,7 @@ from uvs import Ui_smt
 import genDesignTree
 import readConfiguration
 import saveConfiguration
+import svg
 import icon
 
 from PyQt5.QtCore import QEvent
@@ -159,28 +160,36 @@ class MyMainForm(QMainWindow, Ui_smt):
         #+++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 创建 QWebEngineView 组件
         self.web_view = QWebEngineView()
-        self.main_tabWidget.addTab(self.web_view, "Tab 3")
+        self.main_tabWidget.addTab(self.web_view, "HTML")
 
-        # 加载 HTML 文件或内容
-        html_content = """
-        <html>
-        <body>
-            <h1>Hello from HTML</h1>
-            <button onclick="pyqtFunction()">Call PyQt Function</button>
-            <p id="result"></p>
-            <script>
-                function pyqtFunction() {
-                    var resultParagraph = document.getElementById("result");
-                    resultParagraph.innerHTML = "PyQt Function Called!";
-                }
-            </script>
-            <object data=%s type="image/svg+xml"></object>
-        </body>
-        </html>
-        """ % (self.svgfile)
+        ## 从文件读取 HTML 内容
+        #with open(self.svgfile, 'r') as file:
+        #    svg_content = file.read()
+        ### 加载 HTML 文件或内容
+        #html_content = """
+        #<html>
+        #<body>
+        #    <h1>Hello from HTML</h1>
+        #    <button onclick="pyqtFunction()">Call PyQt Function</button>
+        #    <p id="result"></p>
+        #    <script>
+        #        function pyqtFunction() {
+        #            var resultParagraph = document.getElementById("result");
+        #            resultParagraph.innerHTML = "PyQt Function Called!";
+        #        }
+        #    </script>
+        #    %s
+        #</body>
+        #</html>
+        #""" % (svg_content)
 
-        self.web_view.setHtml(html_content)
-        #self.web_view.setHtml(self.html_file)
+        ## 从文件读取 HTML 内容
+        with open(self.html_file, 'r') as file:
+            svg_content = file.read()
+        #html_content = svg.GetSvg(self.svgfile)
+
+        self.web_view.setHtml(svg_content)
+        #self.web_view.load(QUrl(self.html_file))
 
         #+++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 创建一个文件浏览器

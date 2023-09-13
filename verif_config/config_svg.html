@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            .hidden{display:none;}
+            [data-config][data-value="N"]{fill:#4d4d4d;}
+            [data-config][data-value="D"]{fill:#ffff00;}
+            [data-config][data-value="G"]{fill:#7030a0;}
+            [data-config][data-value="V"]{fill:#00b0f0;}
+            [data-config][data-value="S"]{fill:#92d050;}
+            [data-config][data-value="*"]{fill:#000000;}
+        </style>
+    </head>
+    <body>
+        <!--
+        <svg version=1.1 baseProfile="full" width="300" height="200" xmlnx="http://www.w3.org/2000.svg">
+            <rect width="100%" height="100%" fill="yellow" />
+            <circle cx="150" cy="100" r="80" fill="red" id="circle1" data-value="1" />
+            <text x="150" y="125" font-size="60" text-anchor="middle" fill="white">red</text>
+        </svg>
+        -->
+        <div id="svg_div"></div>
+        <script src="static/jquery-3.0.0.min.js"></script>
+        <script src="static/my_tool.js"></script>
+        <script>
+            /*
+            var circle1 = document.getElementById("circle1");
+            var text1 = circle1.nextElementSibling;
+            circle1.addEventListener("click", function() {
+                if (circle1.dataset.value == "1") {
+                    circle1.setAttribute("fill", "blue");
+                    circle1.dataset.value = "2";
+                    text1.innerHTML = "blue";
+                } else {
+                    circle1.setAttribute("fill", "red");
+                    circle1.dataset.value = "1";
+                    text1.innerHTML = "red";
+                }
+            });
+            */
+
+var svg_div = document.getElementById("svg_div");
+DoAjax0("cgi-bin/server.py?svg", function(re) {
+    svg_div.outerHTML = re;
+
+    var configs = document.querySelectorAll("[data-config]");
+    for (var i = 0; i < configs.length; i++) {
+        configs[i].addEventListener("click", function() {
+            //if (!this.classList.contains("config")) {
+            //    return
+            //}
+            var values = JSON.parse(this.dataset.values);
+            for (let i in values) {
+                if (values[i] == this.dataset.value) {
+                    var idx = (parseInt(i)+1)%values.length
+                    this.dataset.value = values[idx.toString()];
+                    break;
+                }
+            }
+        });
+    }
+});
+
+
+
+
+
+        </script>
+    </body>
+</html>

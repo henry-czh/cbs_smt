@@ -1,7 +1,9 @@
-export MAIN_CFG_FILE=./test.cfg
-export USR_CFG_FILE=./usr.cfg
-export CFG_SAVE_DIR=../config
-export SVG_FILE=./arch.svg
-export HTML_FILE=./arch.htm
+export MAIN_CFG_FILE=/home/czh/github/cbs_smt/verif_config/test/all.cfg
+export USR_CFG_FILE=home/czh/github/cbs_smt/verif_config/test/usr.cfg
+export CFG_SAVE_DIR=home/czh/github/cbs_smt
+export SVG_FILE=/home/czh/github/cbs_smt/verif_config/test/demo.svg
+export HTML_FILE=/home/czh/github/cbs_smt/verif_config/config.html
 export CBS_HOME=..
-python3 main.py
+export DEFAULT_MODE=default
+cd ./verif_config
+python3 ../main.py

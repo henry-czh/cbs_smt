@@ -1,0 +1,7 @@
+#TabsToolbar {visibility: collapse}
+#navigator-toolbox {visibility: collapse}
+browser {margin-right: 0px; margin-bottom: 0px;}
+/* #main-window[chromehidden*="toolbar"]  */
+/* #nav-bar, #searchbar, #main-menubar, #urlbar, #PersonalToolbar, #CustomizeToolbarWindow{visibility: collapse!important} */
+/* #nav-bar,#PersonalToolbar{visibility: collapse!important} */
+

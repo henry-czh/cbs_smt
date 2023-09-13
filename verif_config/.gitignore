@@ -1,0 +1,8 @@
+cgi-bin/__pycache__/
+cgi-bin/*.pyc
+test/*.mk
+*.swp
+*.pyc
+cgi-log/*
+!cgi-log/.keep
+drag_demo*
