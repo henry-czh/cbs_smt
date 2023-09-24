@@ -52,6 +52,7 @@ function Init() {
     var data = {};
     DoAjax("cgi-bin/server.py?GetHtml", JSON.stringify(data), function(re1) {
         var uls = JSON.parse(re1);
+        alert(uls);
         data["skt"] = uls["skts"][0];
         data["mode"] = uls["default_mode"];
         DoAjax("cgi-bin/server.py?GetSvg", JSON.stringify(data), function(re2) {

@@ -33,6 +33,11 @@ from PyQt5.QtSvg import QSvgRenderer, QGraphicsSvgItem
 from PyQt5.QtWebEngineWidgets import QWebEnginePage
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtWebChannel import QWebChannel
+from PyQt5.QtWebEngine import QtWebEngine
+
+
+# 初始化QtWebEngine
+QtWebEngine.initialize()
 
 class QComboBox_czh(QComboBox):
     def __init__(self, parent=None):
@@ -117,26 +122,26 @@ class MyMainForm(QMainWindow, Ui_smt):
         #+++++++++++++++++++++++++++++++++++++++++++++++++++++
         #  QGraphicsView  QGraphicsScene
         #+++++++++++++++++++++++++++++++++++++++++++++++++++++
-        self.view = QGraphicsView(self.scrollArea_svg)
-        #self.setCentralWidget(self.view)
-        self.scene = QGraphicsScene()
-        self.view.setScene(self.scene)
-        # �� QGraphicsView ����������������
-        self.scrollArea_svg.setWidget(self.view)
+        #self.view = QGraphicsView(self.scrollArea_svg)
+        ##self.setCentralWidget(self.view)
+        #self.scene = QGraphicsScene()
+        #self.view.setScene(self.scene)
+        ## �� QGraphicsView ����������������
+        #self.scrollArea_svg.setWidget(self.view)
 
-        # QSvgRenderer SVG 
-        # self.svg_renderer = QSvgRenderer(self.svgfile)
+        ## QSvgRenderer SVG 
+        ## self.svg_renderer = QSvgRenderer(self.svgfile)
 
-        # 创建可交互的 QGraphicsSvgItem
-        svg_item = QGraphicsSvgItem(self.svgfile)
-        self.textBrowser.consel(svg_item.elementId(), 'black')
-        #svg_item.setSharedRenderer(self.svg_renderer)
+        ## 创建可交互的 QGraphicsSvgItem
+        #svg_item = QGraphicsSvgItem(self.svgfile)
+        #self.textBrowser.consel(svg_item.elementId(), 'black')
+        ##svg_item.setSharedRenderer(self.svg_renderer)
 
-        # 将图形项添加到场景中
-        self.scene.addItem(svg_item)
+        ## 将图形项添加到场景中
+        #self.scene.addItem(svg_item)
 
-        # 连接鼠标点击事件的处理函数
-        self.view.mousePressEvent = self.Click_Svg
+        ## 连接鼠标点击事件的处理函数
+        #self.view.mousePressEvent = self.Click_Svg
 
         ## �������� QImage ������������
         #svg_size = self.svg_renderer.defaultSize()
@@ -160,11 +165,9 @@ class MyMainForm(QMainWindow, Ui_smt):
         #+++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 创建 QWebEngineView 组件
         self.web_view = QWebEngineView()
-        self.main_tabWidget.addTab(self.web_view, "HTML")
+        #self.main_tabWidget.addTab(self.web_view, "HTML")
+        self.scrollArea_svg.setWidget(self.web_view)
 
-        ## 从文件读取 HTML 内容
-        #with open(self.svgfile, 'r') as file:
-        #    svg_content = file.read()
         ### 加载 HTML 文件或内容
         #html_content = """
         #<html>
@@ -188,7 +191,15 @@ class MyMainForm(QMainWindow, Ui_smt):
             svg_content = file.read()
         #html_content = svg.GetSvg(self.svgfile)
 
-        self.web_view.setHtml(svg_content)
+        #self.web_view.setHtml(svg_content)
+        #self.web_view.loadFinished.connect(self.loadFinished)
+        #self.web_view.loadProgress.connect(self.loadProgress)
+        self.web_view.setUrl(QUrl.fromLocalFile(self.html_file))
+        #执行外部scripts脚本
+        with open('/home/czh/github/cbs_smt/verif_config/static/config.js', 'r') as js_file:
+            js_script = js_file.read()
+        #self.web_view.page().runJavaScript(js_script)
+
         #self.web_view.load(QUrl(self.html_file))
 
         #+++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -308,6 +319,13 @@ class MyMainForm(QMainWindow, Ui_smt):
     #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     #   xxxxxxxxxx      Functions       xxxxxxxxxxxx
     #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def loadFinished(self, ok):
+        if not ok:
+            print("页面加载失败")
+
+    def loadProgress(self, progress):
+        print("加载进度:", progress)
+
     def Click_Svg(self, event):
         # 这是鼠标点击事件的处理函数
         # event 是一个鼠标事件对象，你可以在这里实现自定义的交互逻辑
@@ -357,7 +375,7 @@ class MyMainForm(QMainWindow, Ui_smt):
         if index.isValid() and not self.dir_model.isDir(index):
             file_name = self.dir_model.filePath(index)
             self.textBrowser.consel("打开文件 %s" % (file_name), 'black')
-            os.system('gvim %s' % (file_name))
+            os.system('gvim --remote-tab-silent %s' % (file_name))
 
     def mode_select(self):
         current_mode = self.comboBox.currentText()
