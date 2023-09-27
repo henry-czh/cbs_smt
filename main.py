@@ -11,19 +11,21 @@ import os
 import copy
 import subprocess
 import time
+
 #PyQt5��������������������PyQt5.QtWidgets������
 #from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from xml.etree import ElementTree as ET
+
 #����designer����������login����
 #from cbs_v1 import Ui_MainWindow
 from uvs import Ui_smt
 import genDesignTree
 import readConfiguration
 import saveConfiguration
-import svg
+#import svg
 import icon
 
 from PyQt5.QtCore import QEvent
@@ -120,45 +122,20 @@ class MyMainForm(QMainWindow, Ui_smt):
         self.verticalLayout_5.addWidget(self.textBrowser)
 
         #+++++++++++++++++++++++++++++++++++++++++++++++++++++
-        #  QGraphicsView  QGraphicsScene
+        # 创建一个web界面
         #+++++++++++++++++++++++++++++++++++++++++++++++++++++
-        #self.view = QGraphicsView(self.scrollArea_svg)
-        ##self.setCentralWidget(self.view)
-        #self.scene = QGraphicsScene()
-        #self.view.setScene(self.scene)
-        ## �� QGraphicsView ����������������
-        #self.scrollArea_svg.setWidget(self.view)
+        # 要执行的外部命令
+        cgi_path = os.path.abspath(os.path.join(os.getcwd(), "verif_config"))
+        command = "cd %s; python2 -m CGIHTTPServer 8008" % (cgi_path)
+        #command = "cd %s; python2 -m CGIHTTPServer 8008 &> ~/.uvs/cgihttp.out" % (cgi_path)
 
-        ## QSvgRenderer SVG 
-        ## self.svg_renderer = QSvgRenderer(self.svgfile)
+        # 使用subprocess.Popen()创建非阻塞子进程
+        process = subprocess.Popen(command, shell=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        ## 创建可交互的 QGraphicsSvgItem
-        #svg_item = QGraphicsSvgItem(self.svgfile)
-        #self.textBrowser.consel(svg_item.elementId(), 'black')
-        ##svg_item.setSharedRenderer(self.svg_renderer)
-
-        ## 将图形项添加到场景中
-        #self.scene.addItem(svg_item)
-
-        ## 连接鼠标点击事件的处理函数
-        #self.view.mousePressEvent = self.Click_Svg
-
-        ## �������� QImage ������������
-        #svg_size = self.svg_renderer.defaultSize()
-        #image = QImage(svg_size.width(), svg_size.height(), QImage.Format_ARGB32)
-        #image.fill(Qt.transparent)
-
-        ## �������� QPainter���� SVG ���������� QImage ��
-        #painter = QPainter(image)
-        #self.svg_renderer.render(painter)
-        #painter.end()
-
-        ## ������������������������
-        ##self.modifyColor(image)
-
-        ## �������� QGraphicsPixmapItem ������������������
-        #pixmap_item = QGraphicsPixmapItem(QPixmap.fromImage(image))
-        #self.scene.addItem(pixmap_item)
+        # 获取命令的标准输出和标准错误
+        #stdout_data, stderr_data = process.communicate()
+        #self.textBrowser.consel(process.stdout, 'black')
+        #self.textBrowser.consel(process.stderr, 'black')
 
         #+++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 创建一个web界面
@@ -168,39 +145,17 @@ class MyMainForm(QMainWindow, Ui_smt):
         #self.main_tabWidget.addTab(self.web_view, "HTML")
         self.scrollArea_svg.setWidget(self.web_view)
 
-        ### 加载 HTML 文件或内容
-        #html_content = """
-        #<html>
-        #<body>
-        #    <h1>Hello from HTML</h1>
-        #    <button onclick="pyqtFunction()">Call PyQt Function</button>
-        #    <p id="result"></p>
-        #    <script>
-        #        function pyqtFunction() {
-        #            var resultParagraph = document.getElementById("result");
-        #            resultParagraph.innerHTML = "PyQt Function Called!";
-        #        }
-        #    </script>
-        #    %s
-        #</body>
-        #</html>
-        #""" % (svg_content)
+        self.web_view.loadFinished.connect(self.loadFinished)
+        self.web_view.loadProgress.connect(self.loadProgress)
+        #self.web_view.setUrl(QUrl.fromLocalFile(self.html_file))
+        self.web_view.setUrl(QUrl("http://127.0.0.1:8008/config.html"))
 
-        ## 从文件读取 HTML 内容
-        with open(self.html_file, 'r') as file:
-            svg_content = file.read()
-        #html_content = svg.GetSvg(self.svgfile)
-
-        #self.web_view.setHtml(svg_content)
-        #self.web_view.loadFinished.connect(self.loadFinished)
-        #self.web_view.loadProgress.connect(self.loadProgress)
-        self.web_view.setUrl(QUrl.fromLocalFile(self.html_file))
-        #执行外部scripts脚本
-        with open('/home/czh/github/cbs_smt/verif_config/static/config.js', 'r') as js_file:
-            js_script = js_file.read()
+        ##执行外部scripts脚本
+        #with open('/home/czh/github/cbs_smt/verif_config/static/config.js', 'r') as js_file:
+        #    js_script = js_file.read()
         #self.web_view.page().runJavaScript(js_script)
 
-        #self.web_view.load(QUrl(self.html_file))
+        #self.web_view.load(QUrl("https://www.bing.com"));
 
         #+++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 创建一个文件浏览器
@@ -879,6 +834,9 @@ class MyMainForm(QMainWindow, Ui_smt):
 
 if __name__ == "__main__":
     QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
+    
+    # 设置Qt::AA_UseOpenGLES属性
+    QCoreApplication.setAttribute(Qt.AA_UseOpenGLES)
 
     #固定的，PyQt5程序都需要QApplication对象。sys.argv是命令行参数列表，确保程序可以双击运行
     app = QApplication(sys.argv)

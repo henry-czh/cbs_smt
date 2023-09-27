@@ -6,4 +6,4 @@ export SVG_FILE=/home/czh/github/cbs_smt/arch.svg
 export HTML_FILE=/home/czh/github/cbs_smt/verif_config/config.html
 export CBS_HOME=.
 export DEFAULT_MODE=default
-python3 main.py
+python3 main.py --disable-seccomp-filter-sandbox
