@@ -10,6 +10,7 @@ import sys
 import os
 import copy
 import subprocess
+import signal
 import time
 
 #PyQt5��������������������PyQt5.QtWidgets������
@@ -97,21 +98,16 @@ class MyMainForm(QMainWindow, Ui_smt):
         super(MyMainForm, self).__init__(parent)
         self.setupUi(self)
 
+        # 设置窗口关闭策略为允许通过关闭按钮关闭
+        self.setWindowFlags(self.windowFlags() | Qt.WindowCloseButtonHint)
+
         #system setting
-        self.cfg_file = os.getenv('MAIN_CFG_FILE')
-        self.usr_cfg_file = os.getenv('USR_CFG_FILE')
-        self.saveDir = os.getenv('CFG_SAVE_DIR')
+        self.cfg_file = os.getenv('BASE_CONFIG_FILE')
+        self.usr_cfg_file = os.getenv('USER_CONFIG_FILE')
+        self.saveDir = os.getenv('CONFIG_SAVE_DIR')
         self.svgfile = os.getenv('SVG_FILE')
         self.html_file = os.getenv('HTML_FILE')
         #self.saveDir = os.path.abspath(os.path.join(os.getcwd(), "../config"))
-
-        #self.svgwin.setWindowTitle('Basic Configuration')
-        #icon_cfg = QIcon()
-        #icon_cfg.addPixmap(QPixmap(":/ico/process.ico"), QIcon.Normal, QIcon.Off)
-        #self.svgwin.setWindowIcon(icon_cfg)
-        #self.macrowin.setWindowTitle('Increment Compile')
-        #icon_incr = QIcon(":/ico/equalizer.ico")
-        #self.macrowin.setWindowIcon(icon_incr)
 
         self.textBrowser = ColoredTextBrowser(self.Consel)
         font = QFont()
@@ -126,11 +122,10 @@ class MyMainForm(QMainWindow, Ui_smt):
         #+++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 要执行的外部命令
         cgi_path = os.path.abspath(os.path.join(os.getcwd(), "verif_config"))
-        command = "cd %s; python2 -m CGIHTTPServer 8008" % (cgi_path)
-        #command = "cd %s; python2 -m CGIHTTPServer 8008 &> ~/.uvs/cgihttp.out" % (cgi_path)
+        command = "cd %s; python2 -m CGIHTTPServer 8008  > ~/.uvs/cgihttp.out" % (cgi_path)
 
         # 使用subprocess.Popen()创建非阻塞子进程
-        process = subprocess.Popen(command, shell=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        self.process = subprocess.Popen(command, shell=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=os.setsid)
 
         # 获取命令的标准输出和标准错误
         #stdout_data, stderr_data = process.communicate()
@@ -169,15 +164,18 @@ class MyMainForm(QMainWindow, Ui_smt):
         self.treeView_filebrowser.setRootIndex(self.dir_model.index(self.current_path))
         self.treeView_filebrowser.setColumnWidth(0, 300)
 
-        #create right menu
+        # create right menu
         self.treeView_filebrowser.setContextMenuPolicy(Qt.CustomContextMenu)
         self.treeView_filebrowser.customContextMenuRequested.connect(self.creat_rightmenu)
-        self.treeWidget.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.treeWidget.customContextMenuRequested.connect(self.creat_tree_rightmenu)
+        # double click
+        self.treeView_filebrowser.doubleClicked.connect(self.creat_rightmenu)
         
-        #tooltip
+        # tooltip
         QToolTip.setFont(QFont('SansSerif',10))
-        self.treeView_filebrowser.setToolTip('单击右键可调出菜单')
+        self.treeView_filebrowser.setToolTip('双击或单击右键可调出菜单')
+
+        #self.treeWidget.setContextMenuPolicy(Qt.CustomContextMenu)
+        #self.treeWidget.customContextMenuRequested.connect(self.creat_tree_rightmenu)
 
         #+++++++++++++++++++++++++++++++++++++++++++++++++++++
         # Set statusbar information
@@ -274,6 +272,43 @@ class MyMainForm(QMainWindow, Ui_smt):
     #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     #   xxxxxxxxxx      Functions       xxxxxxxxxxxx
     #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #********************************************************
+    # 自定义关闭串口前的动作
+    #********************************************************
+    def closeEvent(self, event):
+        # 在关闭窗口前执行自定义动作
+        confirm = self.confirmation_dialog()
+        if confirm:
+            if os.path.exists(QDir.homePath()+'/.current_setting.cbs'):
+                os.system('rm %s' % (QDir.homePath()+'/.current_setting.cbs'))
+            self.process.terminate()
+            self.process.wait()
+            os.killpg(self.process.pid,signal.SIGTERM) 
+            event.accept()  # 允许关闭窗口
+        else:
+            event.ignore()  # 取消关闭窗口
+
+    def confirmation_dialog(self):
+        # 创建一个确认对话框
+        confirm_dialog = QMessageBox()
+        confirm_dialog.setIcon(QMessageBox.Question)
+        confirm_dialog.setWindowTitle("确认关闭窗口")
+        confirm_dialog.setText("是否确定关闭窗口?")
+        confirm_dialog.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        confirm_dialog.setDefaultButton(QMessageBox.No)
+
+        # 显示对话框并等待用户的选择
+        user_choice = confirm_dialog.exec_()
+
+        # 根据用户的选择返回True或False
+        if user_choice == QMessageBox.Yes:
+            return True
+        else:
+            return False
+
+    def exitGui(self):
+        self.close()
+
     def loadFinished(self, ok):
         if not ok:
             print("页面加载失败")
@@ -672,11 +707,6 @@ class MyMainForm(QMainWindow, Ui_smt):
             outFile.close()
             os.system('gvim -d %s %s' % (QDir.homePath()+'/.current_setting.cbs',exist_cfg))
             #os.system('rm .current_setting')
-    def exitGui(self):
-        if os.path.exists(QDir.homePath()+'/.current_setting.cbs'):
-            os.system('rm %s' % (QDir.homePath()+'/.current_setting.cbs'))
-        self.close()
-
     def reloadConfigFile(self):
         self.cfg_dict = readConfiguration.readConfiguration(self.cfg_file,self.usr_cfg_file)
         self.cfg_dict = dict(sorted(self.cfg_dict.items(),key=lambda x:x[0]))
