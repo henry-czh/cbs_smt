@@ -372,7 +372,8 @@ def parseConfig(config_src_path,config_usr_path):
             mem_loads_list = re.findall(dpd_pattern,line)
             for item in mem_loads_list:
                 valid_item   = item.strip().strip('{|}')
-                if cfg_dict[cfg_key][mem_type].has_key(valid_item.split(':')[0]):
+                #if cfg_dict[cfg_key][mem_type].has_key(valid_item.split(':')[0]):
+                if valid_item.split(':')[0] in cfg_dict[cfg_key][mem_type]:
                     cfg_dict[cfg_key][mem_type][valid_item.split(':')[0]].append(valid_item.split(':')[1])
                 else:
                     valid_item_dict = {valid_item.split(':')[0]:[valid_item.split(':')[1]]}
@@ -475,4 +476,4 @@ def parseConfig(config_src_path,config_usr_path):
 if __name__=="__main__":
     config_dict = parseConfig(sys.argv[1],sys.argv[2])
     if config_dict['cbs']:
-        print 1
+        print(1)

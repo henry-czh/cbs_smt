@@ -48,6 +48,28 @@ function GetConfigMap(is_save) {
     return configs;
 }
 
+new QWebChannel(qt.webChannelTransport, function(channel) {
+    var dataObj = channel.objects.dataObj;
+
+    // 设置数据到Python
+    window.setDataToPython = function() {
+        var newData = "11111111Data from JavaScript";
+        alert(newData)
+        dataObj.setData(newData);
+    };
+
+    // 从Python获取数据
+    window.getDataFromPython = async function() {
+        try {
+            var data = await dataObj.getData();
+            svg_div.innerHTML = data;
+        } catch (error) {
+            console.error("获取数据时出错:", error);
+        }
+    };
+
+});
+
 function Init() {
     var data = {};
     DoAjax("cgi-bin/server.py?GetHtml", JSON.stringify(data), function(re1) {
@@ -68,23 +90,23 @@ function BindEvent(uls) {
         ConsoleSet.scrollTo(0, ConsoleSet.scrollHeight);
         return;
     }
-    // document.getElementById("mode_select").innerHTML = uls["modes"];
-    document.getElementById("socket_select").innerHTML = uls["sockets"];
-    DesignDiv.innerHTML = uls["treeUl"];
-    MacroDiv.innerHTML = uls["macroUl"];
-    EmuDiv.innerHTML = uls["emu"];
-    ZebuDiv.innerHTML = uls["zebu"];
-    PldDiv.innerHTML = uls["pld"];
-    ProtiumDiv.innerHTML = uls["protium"];
-    SimuDiv.innerHTML = uls["simu"];
-    ImageDiv.innerHTML = uls["image"];
-    PeripheralDiv.innerHTML = uls["peripheral"];
-    CheckerDiv.innerHTML = uls["checker"];
-    MonitorDiv.innerHTML = uls["monitor"];
-    var BaremetalConfig = document.getElementById("BaremetalConfig");
-    BaremetalConfig.outerHTML = uls["BaremetalConfig"];
-    ConsolePre.innerHTML += uls["mess"].trim() + "\n";
-    ConsoleSet.scrollTo(0, ConsoleSet.scrollHeight);
+    //// document.getElementById("mode_select").innerHTML = uls["modes"];
+    //document.getElementById("socket_select").innerHTML = uls["sockets"];
+    //DesignDiv.innerHTML = uls["treeUl"];
+    //MacroDiv.innerHTML = uls["macroUl"];
+    //EmuDiv.innerHTML = uls["emu"];
+    //ZebuDiv.innerHTML = uls["zebu"];
+    //PldDiv.innerHTML = uls["pld"];
+    //ProtiumDiv.innerHTML = uls["protium"];
+    //SimuDiv.innerHTML = uls["simu"];
+    //ImageDiv.innerHTML = uls["image"];
+    //PeripheralDiv.innerHTML = uls["peripheral"];
+    //CheckerDiv.innerHTML = uls["checker"];
+    //MonitorDiv.innerHTML = uls["monitor"];
+    //var BaremetalConfig = document.getElementById("BaremetalConfig");
+    //BaremetalConfig.outerHTML = uls["BaremetalConfig"];
+    //ConsolePre.innerHTML += uls["mess"].trim() + "\n";
+    //ConsoleSet.scrollTo(0, ConsoleSet.scrollHeight);
  
     $("span").click(function() {
         var span = this;

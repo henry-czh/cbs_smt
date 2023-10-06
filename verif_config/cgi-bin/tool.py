@@ -129,9 +129,22 @@ import json
 from lxml import etree
 import sys
 from log import log
+from imp import reload
 
 reload(sys)
-sys.setdefaultencoding('utf-8')
+#sys.setdefaultencoding('utf-8')
+
+class MyEncoder(json.JSONEncoder):
+
+    def default(self, obj):
+        """
+        判断是否为bytes类型的数据是的话转换成str
+        :param obj:
+        :return:
+        """
+        if isinstance(obj, bytes):
+            return str(obj, encoding='utf-8')
+        return json.JSONEncoder.default(self, obj)
 
 def CollectSkts(cfg_dict):
     temp_skt= set()
@@ -236,7 +249,7 @@ def GetHtml(mode):
     # Generate SKT Info
     #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     ulHtml["skts"],ulHtml["sockets"]=CollectSkts(cfg_dict)
-    sys.stderr.write("find all skts%s\n" % ulHtml["skts"])
+    #sys.stderr.write("find all skts%s\n" % ulHtml["skts"])
 
     # check dependency for the initial sets
     checkStatus,check_info = readConfiguration.checkDefaultSet(cfg_dict.copy(),init_cfg_dict)
@@ -249,7 +262,7 @@ def GetHtml(mode):
             ulHtml["mess"] = '<i success>[Success] Initial done!</i>\n' + modeInfo + '<i success>\t 初始化成功!</i>\n'
     elif checkStatus==2:
         ulHtml["mess"] = "<i>[Error] </i>"+check_info
-    return json.dumps(ulHtml)
+    return json.dumps(ulHtml, ensure_ascii=False, cls=MyEncoder, indent=4)
 
 def PostModifySvg(links,cfg_dict,mode_dict,mode,load_dict,selected_skt):
     for link in links:
@@ -336,7 +349,7 @@ def GetLog(configs, config):
     # 处理隐式的父子依赖
     # depend_dict_tree,depend_dict_multi = readConfiguration.unitDepend(base_cfg_file,usr_cfg_file,emu_cfg_file,depend_dict,configs,config)
     # depend_dict.update(depend_dict_tree)
-    log(config)
+    #log(config)
     readConfiguration.SetToDefault(depend_dict, configs, config)
 
     log_dict["success"]=dependStatus
@@ -437,26 +450,30 @@ def LoadHtml(fileContent):
     else:
         ulHtml["mess"] = "<i success>[Success]</i> 加载成功，但是存在以下静默修改：\n"+check_info
 
-    return json.dumps(ulHtml)
+    return json.dumps(ulHtml, ensure_ascii=False, cls=MyEncoder, indent=4)
 
 # 在初始化阶段或Load阶段，完成父子节点间的天然依赖
 def traverseP2C(p2c_dict,load_dict,key_list,forceN):
     for item in key_list:
-        if p2c_dict.has_key(item):
+        #if p2c_dict.has_key(item):
+        if item in p2c_dict:
             if forceN:
                 for key in p2c_dict[item]:
                         load_dict[key] = 'N'
-                        if p2c_dict.has_key(key):
+                        #if p2c_dict.has_key(key):
+                        if key in p2c_dict:
                             load_dict = traverseP2C(p2c_dict,load_dict,p2c_dict[key],True)
             else:
                 for key in p2c_dict[item]:
                     if item in load_dict:
                         if load_dict[item] not in ['D','G']:
                             load_dict[key] = 'N'
-                            if p2c_dict.has_key(key):
+                            #if p2c_dict.has_key(key):
+                            if key in p2c_dict:
                                 load_dict = traverseP2C(p2c_dict,load_dict,p2c_dict[key],True)
                         else:
-                            if p2c_dict.has_key(key):
+                            #if p2c_dict.has_key(key):
+                            if key in p2c_dict:
                                 load_dict = traverseP2C(p2c_dict,load_dict,p2c_dict[key],False)
                     else:
                         load_dict[key] = 'N'

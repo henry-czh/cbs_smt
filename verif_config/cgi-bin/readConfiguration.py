@@ -4,8 +4,9 @@
 import os
 import json
 import sys
+from imp import reload
 reload(sys)
-sys.setdefaultencoding('utf-8')
+#sys.setdefaultencoding('utf-8')
 import re
 from os import system
 from lxml import etree
@@ -149,8 +150,8 @@ def genMacroUl(cfg_dict,mode_dict,mode_en,cfg_type):
             isr = isr0
         if group not in GroupIdex:
             GroupIdex.insert(isr, group)
-            log(isr)
-            log(GroupIdex)
+            #log(isr)
+            #log(GroupIdex)
         # log('item[%s] g[%s]' % (item, group))
         if group not in item_group:
             item_group[group] = []
@@ -373,7 +374,7 @@ def checkConflict(changed_item,changed_value,cfg_dict,cfg_temp_dict,depend_dict,
                             value = [value]
                         if key in be_depend_dict and not set(value).intersection(set(be_depend_dict[key])):
                             #排除对自身的检查，防止进入死循环
-                            log('checkConflict %s ?= %s' % (item, changed_item))
+                            #log('checkConflict %s ?= %s' % (item, changed_item))
                             if item != changed_item:
                               conflict = 1
                               conflict_info = conflict_info + '\n\t %s = %s 依赖于 %s = %s,\n\t 但你正在改变 %s 的值为 %s.\n ' % (item,option_has_depend,key,be_depend_dict[key],key,value)
@@ -492,27 +493,27 @@ def upstreamTreeDepend(cfg_dict,target_dict,item_key):
 
 def SetToDefault(depend_dict, current_cfgs, changed_item):
     cfg_dict = parseConfig.config_dict['cfg']
-    log(depend_dict)
+    #log(depend_dict)
     update_default = {}
     for item in depend_dict:
         if not item.startswith('unit_'):
             continue
         if item not in current_cfgs or current_cfgs[item] == 'D' or current_cfgs[item] == 'G':
             continue
-        log(item)
-        log(depend_dict[item])
+        #log(item)
+        #log(depend_dict[item])
         if depend_dict[item] != 'D' and depend_dict[item] != 'G':
-            log(depend_dict[item])
+            #log(depend_dict[item])
             continue
         father_ins = cfg_dict[item]['instance'][0].strip()
         for ins in parseConfig.instance_map:
             if father_ins not in ins or father_ins == ins:
                 continue
-            log('f s : %s %s %s' % (father_ins, ins, cfg_dict[item]['default']))
+            #log('f s : %s %s %s' % (father_ins, ins, cfg_dict[item]['default']))
             child_item = parseConfig.instance_map[ins]
             update_default[child_item] = cfg_dict[child_item]['default']
     depend_dict.update(update_default)
-    log(update_default)
+    #log(update_default)
 
 
 def unitDepend(base_cfg_file,usr_cfg_file,emu_cfg_file,depend_dict,current_cfgs,changed_item):
@@ -578,7 +579,7 @@ def genGetLog(base_cfg_file,usr_cfg_file,emu_cfg_file,current_cfgs,changed_item)
     soft_dict   = config_dict['soft']
 
 
-    base_info = ' 本次更新配置 : '+changed_item.keys()[0]+' -> '+changed_item.values()[0]
+    base_info = ' 本次更新配置 : '+list(changed_item.keys())[0]+' -> '+list(changed_item.values())[0]
 
     for key,value in changed_item.items():
         #有依赖关系则打印提醒，有静默修改则发出警告

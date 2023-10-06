@@ -22,12 +22,13 @@ from xml.etree import ElementTree as ET
 
 #����designer����������login����
 #from cbs_v1 import Ui_MainWindow
-from uvs import Ui_smt
-import genDesignTree
-import readConfiguration
-import saveConfiguration
+from ui.uvs import Ui_smt
+from backend_scripts import genDesignTree
+from custom_pyqt import webChannel
+#import readConfiguration
+#import saveConfiguration
 #import svg
-import icon
+from ico import icon
 
 from PyQt5.QtCore import QEvent
 from PyQt5.QtWidgets import QComboBox, QSpinBox
@@ -39,8 +40,8 @@ from PyQt5.QtWebChannel import QWebChannel
 from PyQt5.QtWebEngine import QtWebEngine
 
 
-# 初始化QtWebEngine
-QtWebEngine.initialize()
+## 初始化QtWebEngine
+#QtWebEngine.initialize()
 
 class QComboBox_czh(QComboBox):
     def __init__(self, parent=None):
@@ -118,14 +119,14 @@ class MyMainForm(QMainWindow, Ui_smt):
         self.verticalLayout_5.addWidget(self.textBrowser)
 
         #+++++++++++++++++++++++++++++++++++++++++++++++++++++
-        # 创建一个web界面
+        # 启动后台CGI服务
         #+++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 要执行的外部命令
         cgi_path = os.path.abspath(os.path.join(os.getcwd(), "verif_config"))
         command = "cd %s; python2 -m CGIHTTPServer 8008  > ~/.uvs/cgihttp.out" % (cgi_path)
 
         # 使用subprocess.Popen()创建非阻塞子进程
-        self.process = subprocess.Popen(command, shell=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=os.setsid)
+        #self.process = subprocess.Popen(command, shell=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=os.setsid)
 
         # 获取命令的标准输出和标准错误
         #stdout_data, stderr_data = process.communicate()
@@ -140,17 +141,37 @@ class MyMainForm(QMainWindow, Ui_smt):
         #self.main_tabWidget.addTab(self.web_view, "HTML")
         self.scrollArea_svg.setWidget(self.web_view)
 
+        #+++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 增加web与qt程序之间的数据通道
+        #+++++++++++++++++++++++++++++++++++++++++++++++++++++
+        self.data_obj = webChannel.DataObject(self.textBrowser)
+
+        # 将数据对象添加到Web通道
+        self.web_channel = QWebChannel()
+        self.web_channel.registerObject("dataObj", self.data_obj)
+        self.web_view.page().setWebChannel(self.web_channel)
+
+
+        #+++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 加载web界面
+        #+++++++++++++++++++++++++++++++++++++++++++++++++++++
         self.web_view.loadFinished.connect(self.loadFinished)
         self.web_view.loadProgress.connect(self.loadProgress)
-        #self.web_view.setUrl(QUrl.fromLocalFile(self.html_file))
-        self.web_view.setUrl(QUrl("http://127.0.0.1:8008/config.html"))
+        self.web_view.setUrl(QUrl.fromLocalFile(self.html_file))
+        #self.web_view.setUrl(QUrl("http://127.0.0.1:8008/qtconfig.html"))
 
         ##执行外部scripts脚本
         #with open('/home/czh/github/cbs_smt/verif_config/static/config.js', 'r') as js_file:
         #    js_script = js_file.read()
         #self.web_view.page().runJavaScript(js_script)
 
-        #self.web_view.load(QUrl("https://www.bing.com"));
+        #+++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 打开外部网页, 用以集成内网各平台环境
+        #+++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 创建 QWebEngineView 组件
+        self.baidu_view = QWebEngineView()
+        self.main_tabWidget.addTab(self.baidu_view, "搜索引擎")
+        self.baidu_view.setUrl(QUrl("http://www.baidu.com"));
 
         #+++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 创建一个文件浏览器
@@ -281,9 +302,9 @@ class MyMainForm(QMainWindow, Ui_smt):
         if confirm:
             if os.path.exists(QDir.homePath()+'/.current_setting.cbs'):
                 os.system('rm %s' % (QDir.homePath()+'/.current_setting.cbs'))
-            self.process.terminate()
-            self.process.wait()
-            os.killpg(self.process.pid,signal.SIGTERM) 
+            #self.process.terminate()
+            #self.process.wait()
+            #os.killpg(self.process.pid,signal.SIGTERM) 
             event.accept()  # 允许关闭窗口
         else:
             event.ignore()  # 取消关闭窗口
@@ -863,10 +884,10 @@ class MyMainForm(QMainWindow, Ui_smt):
                 self.collapse_item(item.child(i))
 
 if __name__ == "__main__":
-    QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
+    #QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
     
-    # 设置Qt::AA_UseOpenGLES属性
-    QCoreApplication.setAttribute(Qt.AA_UseOpenGLES)
+    ## 设置Qt::AA_UseOpenGLES属性
+    #QCoreApplication.setAttribute(Qt.AA_UseOpenGLES)
 
     #固定的，PyQt5程序都需要QApplication对象。sys.argv是命令行参数列表，确保程序可以双击运行
     app = QApplication(sys.argv)
