@@ -68,6 +68,8 @@ class DataObject(QObject):
     @pyqtSlot(QVariant, result=str)
     def GetLog(self,configs):
         getlog = tool.GetLog(configs['configs'],configs['config'])
+        html_json = json.loads(getlog)
+        self.print_mess(html_json["message"])
         return getlog
 
     @pyqtSlot(QVariant, result=str)

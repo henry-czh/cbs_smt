@@ -21,13 +21,10 @@ from PyQt5.QtWidgets import *
 from xml.etree import ElementTree as ET
 
 #����designer����������login����
-#from cbs_v1 import Ui_MainWindow
 from ui.uvs import Ui_smt
 from backend_scripts import genDesignTree
 from custom_pyqt import webChannel
-#import readConfiguration
-#import saveConfiguration
-#import svg
+from custom_pyqt.custom_widget import *
 from ico import icon
 
 from PyQt5.QtCore import QEvent
@@ -39,64 +36,6 @@ from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtWebChannel import QWebChannel
 from PyQt5.QtWebEngine import QtWebEngine
 
-
-## 初始化QtWebEngine
-#QtWebEngine.initialize()
-
-class QComboBox_czh(QComboBox):
-    def __init__(self, parent=None):
-        super(QComboBox_czh,self).__init__(parent)
-
-    def wheelEvent(self, e):
-        if e.type() == QEvent.Wheel:
-            e.ignore()
-
-class QSpinBox(QSpinBox):
-    def __init__(self, parent=None):
-        super(QSpinBox,self).__init__(parent)
-
-    def wheelEvent(self, e):
-        if e.type() == QEvent.Wheel:
-            e.ignore()
-
-class ColoredTextBrowser(QTextBrowser):
-    def __init__(self, parent=None):
-        super(ColoredTextBrowser,self).__init__(parent)
-        self.tips()
-
-    def tips(self):
-        # 获取当前文本光标
-        cursor = self.textCursor()
-        t = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
-
-        # 创建文本字符格式，设置颜色
-        char_format = QTextCharFormat()
-
-        char_format.setForeground(QColor('blue'))
-        # 在光标处应用字符格式
-        cursor.setCharFormat(char_format)
-        # 插入文本
-        cursor.insertText('[%s]# ' % (t))
-
-    def consel(self, text, color):
-        # 获取当前文本光标
-        cursor = self.textCursor()
-
-        # 创建文本字符格式，设置颜色
-        char_format = QTextCharFormat()
-
-        char_format.setForeground(QColor(color))
-        cursor.setCharFormat(char_format)
-        cursor.insertText(text+'\n')
-
-        self.tips()
-
-        # 恢复默认字符格式
-        cursor.setCharFormat(QTextCharFormat())
-
-        # 每当文本内容更新时，滚动到底部
-        cursor.movePosition(QTextCursor.End)
-        self.setTextCursor(cursor)
 
 class MyMainForm(QMainWindow, Ui_smt):
     def __init__(self, parent=None):
@@ -126,8 +65,8 @@ class MyMainForm(QMainWindow, Ui_smt):
         # 启动后台CGI服务
         #+++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 要执行的外部命令
-        cgi_path = os.path.abspath(os.path.join(os.getcwd(), "verif_config"))
-        command = "cd %s; python2 -m CGIHTTPServer 8008  > ~/.uvs/cgihttp.out" % (cgi_path)
+        #cgi_path = os.path.abspath(os.path.join(os.getcwd(), "verif_config"))
+        #command = "cd %s; python2 -m CGIHTTPServer 8008  > ~/.uvs/cgihttp.out" % (cgi_path)
 
         # 使用subprocess.Popen()创建非阻塞子进程
         #self.process = subprocess.Popen(command, shell=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=os.setsid)
@@ -159,15 +98,10 @@ class MyMainForm(QMainWindow, Ui_smt):
         #+++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 加载web界面
         #+++++++++++++++++++++++++++++++++++++++++++++++++++++
-        self.web_view.loadFinished.connect(self.loadFinished)
-        self.web_view.loadProgress.connect(self.loadProgress)
+        #self.web_view.loadFinished.connect(self.loadFinished)
+        #self.web_view.loadProgress.connect(self.loadProgress)
         self.web_view.setUrl(QUrl.fromLocalFile(self.html_file))
         #self.web_view.setUrl(QUrl("http://127.0.0.1:8008/qtconfig.html"))
-
-        ##执行外部scripts脚本
-        #with open('/home/czh/github/cbs_smt/verif_config/static/config.js', 'r') as js_file:
-        #    js_script = js_file.read()
-        #self.web_view.page().runJavaScript(js_script)
 
         #+++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 打开外部网页, 用以集成内网各平台环境

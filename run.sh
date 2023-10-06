@@ -7,6 +7,6 @@ export HTML_FILE=/home/czh/github/cbs_smt/verif_config/qtconfig.html
 export CBS_HOME=.
 export DEFAULT_MODE=default
 
-python2 ./verif_config/cgi-bin/parseConfig.py $BASE_CONFIG_FILE $USER_CONFIG_FILE
+#python2 ./verif_config/cgi-bin/parseConfig.py $BASE_CONFIG_FILE $USER_CONFIG_FILE
 
 python3 -B main.py --disable-seccomp-filter-sandbox
