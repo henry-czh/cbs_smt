@@ -1,0 +1,91 @@
+#!/usr/bin/env python
+from PyQt5.QtWidgets import *
+
+from PyQt5.QtCore import QEvent
+from PyQt5.QtWidgets import QComboBox, QSpinBox
+
+class QComboBox_czh(QComboBox):
+    def __init__(self, parent=None):
+        super(QComboBox_czh,self).__init__(parent)
+
+    def wheelEvent(self, e):
+        if e.type() == QEvent.Wheel:
+            e.ignore()
+
+class QSpinBox(QSpinBox):
+    def __init__(self, parent=None):
+        super(QSpinBox,self).__init__(parent)
+
+    def wheelEvent(self, e):
+        if e.type() == QEvent.Wheel:
+            e.ignore()
+
+def saveMacroConfiguration(tableWidget):
+    #++++++++++++++++++++++++++++++++++++++++
+    # collect macro configuration
+    #++++++++++++++++++++++++++++++++++++++++
+    textOut = ''
+    row_count = tableWidget.rowCount()
+    for i in range(row_count):
+        if type(tableWidget.item(i,0))==QTableWidgetItem:
+            macro = tableWidget.item(i,0).text()
+            #value = ''
+            #if type(tableWidget.cellWidget(i,1))==QComboBox_czh:
+            value = tableWidget.cellWidget(i,1).currentText()
+            #if macro and value:
+            textOut = textOut+'%s = %s\n' % (macro,value)
+    return textOut
+
+
+def saveUnitConfiguration(treeWidget):
+    #++++++++++++++++++++++++++++++++++++++++
+    # collect design configuration
+    #++++++++++++++++++++++++++++++++++++++++
+    textOut='''
+config cfg;
+    design chip_tb;
+    default worklib;
+'''
+    tree_col_count = treeWidget.columnCount()
+    it = QTreeWidgetItemIterator(treeWidget)
+    while it.value():
+        item = it.value()
+        #print (item.toolTip(0))
+        if not item.isHidden():
+            if item.toolTip(0):
+                hdl_path = item.toolTip(0)
+                cell_name = treeWidget.itemWidget(item,1).currentText().split(':')[1]
+                textOut = textOut + '    instance %s use worklib.%s;\n' % (hdl_path,cell_name)
+        it.__iadd__(1)
+    textOut = textOut + 'endconfig\n'
+
+    return textOut
+
+def saveConfigFileFromGui(tableWidget,treeWidget):
+    #++++++++++++++++++++++++++++++
+    # save macro value
+    #++++++++++++++++++++++++++++++
+    textOut = saveMacroConfiguration(tableWidget)
+
+    #++++++++++++++++++++++++++++++
+    # save unit value
+    #++++++++++++++++++++++++++++++
+    it = QTreeWidgetItemIterator(treeWidget)
+    while it.value():
+        item = it.value()
+        #print (item.toolTip(0))
+        if not item.isHidden():
+            if item.toolTip(0):
+                item_name = item.text(2)
+                item_value = treeWidget.itemWidget(item,1).currentText().split(':')[0]
+                textOut = textOut + '%s = %s\n' % (item_name,item_value)
+        it.__iadd__(1)
+
+    return textOut
+
+def saveConfigFile(cfg_out_dict):
+    textOut = '#//Generate automatic by CMT,don\'t change!'
+    key_list = sorted(cfg_out_dict.keys(),reverse=False)
+    for key in key_list:
+        textOut = textOut + '\n' + key + ' = ' + cfg_out_dict[key] + '\n'
+    return textOut
