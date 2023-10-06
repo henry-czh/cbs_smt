@@ -94,6 +94,10 @@ class ColoredTextBrowser(QTextBrowser):
         # 恢复默认字符格式
         cursor.setCharFormat(QTextCharFormat())
 
+        # 每当文本内容更新时，滚动到底部
+        cursor.movePosition(QTextCursor.End)
+        self.setTextCursor(cursor)
+
 class MyMainForm(QMainWindow, Ui_smt):
     def __init__(self, parent=None):
         super(MyMainForm, self).__init__(parent)
