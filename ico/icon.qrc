@@ -1,17 +1,11 @@
 <RCC>
-  <qresource>
-    <file alias="ico/cbs64.ico">ico/cbs64.ico</file>
-    <file alias="ico/cbs48.ico">ico/cbs48.ico</file>
-    <file alias="ico/coda.png">ico/coda.png</file>
-    <file alias="ico/note_accept.ico">ico/note_accept.ico</file>
-    <file alias="ico/refresh.ico">ico/refresh.ico</file>
-    <file alias="ico/search_page.ico">ico/search_page.ico</file>
-    <file alias="ico/process_accept.ico">ico/process_accept.ico</file>
-    <file alias="ico/process.ico">ico/process.ico</file>
-    <file alias="ico/equalizer.ico">ico/equalizer.ico</file>
-    <file alias="ico/download.ico">ico/download.ico</file>
-    <file alias="ico/tools.ico">ico/tools.ico</file>
-    <file alias="ico/search_page.ico">ico/search_page.ico</file>
-    <file alias="ico/lock.ico">ico/lock.png</file>
+  <qresource prefix="../ico">
+    <file>terminal.png</file>
+    <file>cbs64.ico</file>
+    <file>equalizer.ico</file>
+    <file>install.png</file>
+    <file>new_doc.png</file>
+    <file>process.ico</file>
+    <file>tools.ico</file>
   </qresource>
 </RCC>

@@ -601,11 +601,12 @@ def checkDefaultSet(cfg_dict,cfg_out_dict):
     depend_info_all = ''
     has_depend = 0
 
-    for key,value in cfg_out_dict.items():
+    for key in list(cfg_out_dict.keys()):
         #有依赖关系则打印提醒，有静默修改则发出警告
-        status,has_depend,depend_info,depend_dict,cfg_temp_dict = checkDependence([key],key,value,cfg_dict,cfg_out_dict,0,0,'',{})
+        status,has_depend,depend_info,depend_dict,cfg_temp_dict = checkDependence([key],key,cfg_out_dict[key],cfg_dict,cfg_out_dict,0,0,'',{})
+
         #若无冲突，可正常更新配置；否则，取消本次修改，给出错误提示；可能发生在两个地方，1是当前修改项，2是静默修改项，均需要做check；
-        conflict,conflict_info = checkConflict(key,value,cfg_dict,cfg_out_dict,depend_dict,0,'')
+        conflict,conflict_info = checkConflict(key,cfg_out_dict[key],cfg_dict,cfg_out_dict,depend_dict,0,'')
 
         if conflict:
             return 2,conflict_info

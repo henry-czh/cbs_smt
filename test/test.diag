@@ -1,0 +1,5 @@
+testcase0 path=hello_world config=111 argv='+define+TIMEOUT=50000' run_boards='0,1,2,3'
+testcase1 path=hello_world config=112 argv='+define+TIMEOUT=50000' run_boards='0,1,2,3'
+testcase2 path=hello_world config=113 argv='+define+TIMEOUT=50000' run_boards='0,1,2,3'
+testcase3 path=hello_world config=114 argv='+define+TIMEOUT=50000' run_boards='0,1,2,3'
+testcase4 path=hello_world config=115 argv='+define+TIMEOUT=50000' run_boards='0,1,2,3'

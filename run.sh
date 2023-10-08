@@ -4,6 +4,7 @@ export CONFIG_SAVE_DIR=/home/czh/github/cbs_smt
 export SVG_FILE=/home/czh/github/cbs_smt/verif_config/test/demo.svg
 #export SVG_FILE=/home/czh/github/cbs_smt/arch.svg
 export HTML_FILE=/home/czh/github/cbs_smt/verif_config/qtconfig.html
+export DIAG_FILE=/home/czh/github/cbs_smt/test/test.diag
 export CBS_HOME=.
 export DEFAULT_MODE=default
 

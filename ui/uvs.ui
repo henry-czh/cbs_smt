@@ -23,8 +23,8 @@
    <string>Simulate Manager Tool</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="icon.qrc">
-    <normaloff>:/ico/cbs64.ico</normaloff>:/ico/cbs64.ico</iconset>
+   <iconset>
+    <normaloff>../ico/uvs_white.jpg</normaloff>../ico/uvs_white.jpg</iconset>
   </property>
   <property name="windowOpacity">
    <double>10.000000000000000</double>
@@ -42,7 +42,7 @@
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
-   <layout class="QHBoxLayout" name="horizontalLayout">
+   <layout class="QVBoxLayout" name="verticalLayout_2">
     <item>
      <widget class="QSplitter" name="splitter_2">
       <property name="sizePolicy">
@@ -117,7 +117,7 @@
          <enum>QTabWidget::Rounded</enum>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <property name="tabsClosable">
          <bool>true</bool>
@@ -332,7 +332,7 @@
                <x>0</x>
                <y>0</y>
                <width>891</width>
-               <height>334</height>
+               <height>544</height>
               </rect>
              </property>
              <property name="sizePolicy">
@@ -356,11 +356,106 @@
          <attribute name="title">
           <string>macrotab</string>
          </attribute>
+         <layout class="QVBoxLayout" name="verticalLayout_4">
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout">
+            <item>
+             <widget class="QPushButton" name="pushButton_2">
+              <property name="text">
+               <string>运行</string>
+              </property>
+              <property name="icon">
+               <iconset>
+                <normaloff>ico/new_doc.png</normaloff>ico/new_doc.png</iconset>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pushButton">
+              <property name="text">
+               <string>波形</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pushButton_3">
+              <property name="text">
+               <string>打印输出</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pushButton_4">
+              <property name="text">
+               <string>测试程序</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="lineEdit">
+              <property name="tabletTracking">
+               <bool>true</bool>
+              </property>
+              <property name="clearButtonEnabled">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QTableWidget" name="diag_table">
+            <property name="dragEnabled">
+             <bool>true</bool>
+            </property>
+            <property name="alternatingRowColors">
+             <bool>true</bool>
+            </property>
+            <property name="showGrid">
+             <bool>false</bool>
+            </property>
+            <property name="gridStyle">
+             <enum>Qt::DashLine</enum>
+            </property>
+            <property name="sortingEnabled">
+             <bool>true</bool>
+            </property>
+            <attribute name="horizontalHeaderCascadingSectionResizes">
+             <bool>true</bool>
+            </attribute>
+            <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+             <bool>true</bool>
+            </attribute>
+            <attribute name="horizontalHeaderStretchLastSection">
+             <bool>true</bool>
+            </attribute>
+            <attribute name="verticalHeaderCascadingSectionResizes">
+             <bool>true</bool>
+            </attribute>
+            <attribute name="verticalHeaderShowSortIndicator" stdset="0">
+             <bool>true</bool>
+            </attribute>
+            <attribute name="verticalHeaderStretchLastSection">
+             <bool>false</bool>
+            </attribute>
+           </widget>
+          </item>
+         </layout>
         </widget>
         <widget class="QWidget" name="tooltab">
          <attribute name="title">
           <string>tooltab</string>
          </attribute>
+         <widget class="QTableWidget" name="tableWidget">
+          <property name="geometry">
+           <rect>
+            <x>350</x>
+            <y>210</y>
+            <width>256</width>
+            <height>192</height>
+           </rect>
+          </property>
+         </widget>
         </widget>
        </widget>
       </widget>
@@ -435,7 +530,7 @@
      <x>0</x>
      <y>0</y>
      <width>1245</width>
-     <height>22</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -491,9 +586,16 @@
     <addaction name="actionFormal"/>
     <addaction name="menuDebug"/>
    </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="actionAbout_SMT"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuWindow"/>
    <addaction name="menuMode"/>
+   <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar">
    <property name="font">
@@ -533,7 +635,7 @@
   </widget>
   <action name="actionsave">
    <property name="icon">
-    <iconset resource="icon.qrc">
+    <iconset>
      <normaloff>:/ico/note_accept.ico</normaloff>:/ico/note_accept.ico</iconset>
    </property>
    <property name="text">
@@ -545,7 +647,7 @@
   </action>
   <action name="actionreload">
    <property name="icon">
-    <iconset resource="icon.qrc">
+    <iconset>
      <normaloff>:/ico/refresh.ico</normaloff>:/ico/refresh.ico</iconset>
    </property>
    <property name="text">
@@ -557,7 +659,7 @@
   </action>
   <action name="actionopen">
    <property name="icon">
-    <iconset resource="icon.qrc">
+    <iconset>
      <normaloff>:/ico/search_page.ico</normaloff>:/ico/search_page.ico</iconset>
    </property>
    <property name="text">
@@ -619,9 +721,14 @@
     <string>X1</string>
    </property>
   </action>
+  <action name="actionAbout_SMT">
+   <property name="text">
+    <string>About SMT</string>
+   </property>
+  </action>
  </widget>
  <resources>
-  <include location="icon.qrc"/>
+  <include location="../ico/icon.qrc"/>
  </resources>
  <connections/>
 </ui>

@@ -88,31 +88,39 @@ new QWebChannel(qt.webChannelTransport, function(channel) {
         preview.innerHTML = text;
     }
 
-function ChangeSocket(mode) {
-    data = {fileContent: $("#preview").html(), skt: $("#socket_select").val()};
-    DoAjax("cgi-bin/server.py?LoadSvg", JSON.stringify(data), function(re2) {
+    window.ChangeSocket = async function(mode) {
+        data = {fileContent: $("#preview").html(), skt: $("#socket_select").val()};
+        try {
+            var re2 = await dataObj.LoadSvg(data);
+        } catch (error) {
+            console.error("changeSocket:", error);
+        }
         svg_div.innerHTML = re2;
         BindSvgEvent();
-    });
-}
 
-function SetSvgVal(id, val) {
-    var oldId = "unit_" + $("#socket_select").val() + "_";
-    id = id.replace(oldId, "unit_:_");
-    var rect = document.querySelector("[data-config='"+id+"']");
-    if (rect == null) return;
-    rect.dataset.value = val;
-}
-
-function GetConfigMap(is_save) {
-    set_configs = document.querySelectorAll("select,input,textarea");
-    var configs = {};
-    for (var j = 0; j < set_configs.length; j++) {
-        if (is_save && set_configs[j].id && !set_configs[j].classList.contains("set")) continue;
-        configs[set_configs[j].id] = set_configs[j].value;
+        //DoAjax("cgi-bin/server.py?LoadSvg", JSON.stringify(data), function(re2) {
+        //    svg_div.innerHTML = re2;
+        //    BindSvgEvent();
+        //});
     }
-    return configs;
-}
+
+    function SetSvgVal(id, val) {
+        var oldId = "unit_" + $("#socket_select").val() + "_";
+        id = id.replace(oldId, "unit_:_");
+        var rect = document.querySelector("[data-config='"+id+"']");
+        if (rect == null) return;
+        rect.dataset.value = val;
+    }
+
+    function GetConfigMap(is_save) {
+        set_configs = document.querySelectorAll("select,input,textarea");
+        var configs = {};
+        for (var j = 0; j < set_configs.length; j++) {
+            if (is_save && set_configs[j].id && !set_configs[j].classList.contains("set")) continue;
+            configs[set_configs[j].id] = set_configs[j].value;
+        }
+        return configs;
+    }
 
     function BindEvent(uls) {
         document.getElementById("socket_select").innerHTML = uls["sockets"];

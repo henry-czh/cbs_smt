@@ -23,6 +23,7 @@ from xml.etree import ElementTree as ET
 #����designer����������login����
 from ui.uvs import Ui_smt
 from backend_scripts import genDesignTree
+from backend_scripts import extractDiag
 from custom_pyqt import webChannel
 from custom_pyqt.custom_widget import *
 from ico import icon
@@ -42,17 +43,25 @@ class MyMainForm(QMainWindow, Ui_smt):
         super(MyMainForm, self).__init__(parent)
         self.setupUi(self)
 
+        #+++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 设置窗口关闭策略为允许通过关闭按钮关闭
+        #+++++++++++++++++++++++++++++++++++++++++++++++++++++
         self.setWindowFlags(self.windowFlags() | Qt.WindowCloseButtonHint)
 
-        #system setting
+        #+++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # System Setting
+        #+++++++++++++++++++++++++++++++++++++++++++++++++++++
         self.cfg_file = os.getenv('BASE_CONFIG_FILE')
         self.usr_cfg_file = os.getenv('USER_CONFIG_FILE')
         self.saveDir = os.getenv('CONFIG_SAVE_DIR')
         self.svgfile = os.getenv('SVG_FILE')
         self.html_file = os.getenv('HTML_FILE')
+        self.diag_file = os.getenv('DIAG_FILE')
         #self.saveDir = os.path.abspath(os.path.join(os.getcwd(), "../config"))
 
+        #+++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # Create Console Window
+        #+++++++++++++++++++++++++++++++++++++++++++++++++++++
         self.textBrowser = ColoredTextBrowser(self.Consel)
         font = QFont()
         font.setFamily("Monospace")
@@ -79,9 +88,10 @@ class MyMainForm(QMainWindow, Ui_smt):
         #+++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 创建一个web界面
         #+++++++++++++++++++++++++++++++++++++++++++++++++++++
+        #self.main_tabWidget.addTab(self.web_view, "HTML")
         # 创建 QWebEngineView 组件
         self.web_view = QWebEngineView()
-        #self.main_tabWidget.addTab(self.web_view, "HTML")
+        self.main_tabWidget.setTabText(0, "仿真配置")
         self.scrollArea_svg.setWidget(self.web_view)
 
         #+++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -133,23 +143,61 @@ class MyMainForm(QMainWindow, Ui_smt):
         QToolTip.setFont(QFont('SansSerif',10))
         self.treeView_filebrowser.setToolTip('双击或单击右键可调出菜单')
 
-        #self.treeWidget.setContextMenuPolicy(Qt.CustomContextMenu)
-        #self.treeWidget.customContextMenuRequested.connect(self.creat_tree_rightmenu)
+        #+++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # Create Diag Table
+        #+++++++++++++++++++++++++++++++++++++++++++++++++++++
+        self.diag_info = extractDiag.extractDiag(self.diag_file)
+
+        # 设置初始行数和列数
+        line_nums = len(self.diag_info)
+        self.diag_table.setRowCount(line_nums)
+        self.diag_table.setColumnCount(10)
+
+        # 设置选择模式为整行选择
+        self.diag_table.setSelectionBehavior(QAbstractItemView.SelectRows)
+        # 隐藏行序号
+        self.diag_table.verticalHeader().setVisible(False)
+
+        # 设置表头标签
+        table_header = [" ", " ",
+                        "testcase*", 
+                        "path*", 
+                        "config*",
+                        "comp_argvs",
+                        "run_argvs",
+                        "run_boards",
+                        "scp",
+                        "argv"]
+        self.diag_table.setHorizontalHeaderLabels(table_header)
+
+        self.table_data = []  # 存储表格数据的列表
+        for row, rowData in enumerate(self.diag_info):
+            self.table_data.append(rowData)
+            for col, cellData in enumerate(rowData):
+                item = QTableWidgetItem(str(cellData))
+                self.diag_table.setItem(row, col+2, item)
+
+            # 在每行的最后一列添加一个勾选框
+            checkbox = QCheckBox()
+            self.diag_table.setCellWidget(row, 1, checkbox)
+
+        # 连接文本框的文本更改事件到过滤函数
+        self.lineEdit.textChanged.connect(self.filterTable)
+        # 设置占位符文本
+        self.lineEdit.setPlaceholderText("Filter..")
+
+        # 调整列宽以适应内容
+        self.diag_table.resizeColumnsToContents()
+
+        # 为表格添加右键菜单
+        self.diag_table.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.diag_table.customContextMenuRequested.connect(self.diagTableContextMenu)
 
         #+++++++++++++++++++++++++++++++++++++++++++++++++++++
         # Set statusbar information
         #+++++++++++++++++++++++++++++++++++++++++++++++++++++
         self.statusbar.showMessage('如有疑问, 请联系 chaozhanghu@phytium.com.cn  @Qsmtool 23.09-0001')
         self.statusbar.show()
-
-       # #mdi multi window shou
-       # self.mdiArea.addSubWindow(self.subwindow_3)
-       # self.subwindow_3.show()
-       # self.mdiArea.addSubWindow(self.subwindow_2)
-       # self.subwindow_2.show()
-       # self.mdiArea.addSubWindow(self.subwindow)
-       # #self.subwindow.show()
-       # self.subwindow.showMaximized()
 
        # #********************************************************
        # # connect buttons and function 
@@ -264,6 +312,79 @@ class MyMainForm(QMainWindow, Ui_smt):
             return True
         else:
             return False
+
+    def filterTable(self):
+        filter_text = self.lineEdit.text().strip()
+        for row, rowData in enumerate(self.table_data):
+            show_row = any(filter_text in str(cellData).lower() for cellData in rowData)
+            self.diag_table.setRowHidden(row, not show_row)
+
+    def diagTableContextMenu(self, pos):
+        # 创建右键菜单
+        context_menu    = QMenu(self)
+        action_edit     = QAction("编辑", self)
+        action_delete   = QAction("删除", self)
+        action_add      = QAction("新增", self)
+
+        # 连接菜单项的槽函数
+        action_edit.triggered.connect(self.editItem)
+        action_delete.triggered.connect(self.deleteItem)
+        action_add.triggered.connect(self.addTableItem)
+
+        # 将菜单项添加到右键菜单
+        context_menu.addAction(action_edit)
+        context_menu.addAction(action_delete)
+        context_menu.addAction(action_add)
+
+        # 显示右键菜单
+        context_menu.exec_(self.diag_table.mapToGlobal(pos))
+
+    def editItem(self):
+        # 编辑选定的表格项
+        selected_items = self.diag_table.selectedItems()
+        if selected_items:
+            item = selected_items[0]
+            item.setText("编辑后的内容")
+
+    def deleteItem(self):
+        # 删除选定的行
+        selected_rows = set()
+        for item in self.diag_table.selectedItems():
+            selected_rows.add(item.row())
+
+        for row in selected_rows:
+            self.diag_table.removeRow(row)
+
+    def addTableItem(self):
+        # 新增一行并复制当前选中的行
+        selected_rows = set()
+        for item in self.diag_table.selectedItems():
+            selected_rows.add(item.row())
+
+        new_row = self.diag_table.rowCount()
+        self.diag_table.insertRow(new_row)
+
+        # 在每行的最后一列添加一个勾选框
+        checkbox = QCheckBox()
+        self.diag_table.setCellWidget(new_row, 1, checkbox)
+
+        if not selected_rows:
+            return
+
+        for row in selected_rows:
+            for col in range(self.diag_table.columnCount()):
+                if col in [0,1]:
+                    continue
+                source_item = self.diag_table.item(row, col)
+                if source_item:
+                    if col == 2:
+                        new_item = QTableWidgetItem(source_item.text()+'_new')
+                    else:
+                        new_item = QTableWidgetItem(source_item.text())
+                    self.diag_table.setItem(new_row, col, new_item)
+        
+        # 调整列宽以适应内容
+        self.diag_table.resizeColumnsToContents()
 
     def exitGui(self):
         self.close()
