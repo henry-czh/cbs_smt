@@ -51,6 +51,10 @@ class ColoredTextBrowser(QTextBrowser):
         # 插入文本
         cursor.insertText('[%s]# ' % (t))
 
+        # 每当文本内容更新时，滚动到底部
+        cursor.movePosition(QTextCursor.End)
+        self.setTextCursor(cursor)
+
     def consel(self, text, color):
         # 获取当前文本光标
         cursor = self.textCursor()
@@ -64,9 +68,5 @@ class ColoredTextBrowser(QTextBrowser):
 
         self.tips()
 
-        # 恢复默认字符格式
-        cursor.setCharFormat(QTextCharFormat())
-
-        # 每当文本内容更新时，滚动到底部
-        cursor.movePosition(QTextCursor.End)
-        self.setTextCursor(cursor)
+        ## 恢复默认字符格式
+        #cursor.setCharFormat(QTextCharFormat())

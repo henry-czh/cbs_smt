@@ -178,9 +178,17 @@ class MyMainForm(QMainWindow, Ui_smt):
                 item = QTableWidgetItem(str(cellData))
                 self.diag_table.setItem(row, col+2, item)
 
-            # 在每行的最后一列添加一个勾选框
-            checkbox = QCheckBox()
-            self.diag_table.setCellWidget(row, 1, checkbox)
+            # 创建一个QCheckBox并将其放入单元格
+            checkbox = QTableWidgetItem()
+            checkbox.setFlags(checkbox.flags() | Qt.ItemIsUserCheckable)
+            checkbox.setCheckState(Qt.Unchecked)
+            self.diag_table.setItem(row, 1, checkbox)
+
+            # 设置第1列单元格的背景颜色
+            #yellow_bg_color = QColor(255, 255, 0)
+            item = QTableWidgetItem()
+            #item.setBackground(yellow_bg_color)
+            self.diag_table.setItem(row, 0, item)
 
         # 连接文本框的文本更改事件到过滤函数
         self.lineEdit.textChanged.connect(self.filterTable)
@@ -200,42 +208,23 @@ class MyMainForm(QMainWindow, Ui_smt):
         self.statusbar.showMessage('如有疑问, 请联系 chaozhanghu@phytium.com.cn  @Qsmtool 23.09-0001')
         self.statusbar.show()
 
-       # #********************************************************
-       # # connect buttons and function 
-       # #********************************************************
+        #********************************************************
+        # connect buttons and function 
+        #********************************************************
+        # 仿真运行按键
         self.run.clicked.connect(self.runSimulate)
-       # # button "Apply"
-       # self.pushButton.clicked.connect(self.applyConfig)
-       # # button "Save"
-       # self.pushButton_3.clicked.connect(self.saveConfigFile)
-       # # button "Compare"
-       # self.pushButton_5.clicked.connect(self.compareConfigFile)
-       # # button "open"
 
-       # self.pushButton_6.clicked.connect(self.loadConfigFile)
-       # # tool button "reload"
-        #self.actionopen.triggered.connect(self.loadConfigFile)
+        # 停止运行指定测试项
+        self.stopSimuate.clicked.connect(self.stopSimuateFunc)
 
-        # action "Exit"
-        self.actionExit.triggered.connect(self.exitGui)
+        ## 保存diag文件
+        #self.saveDiag.clicked.connect(self.saveDiagFunc)
 
-       # #read configuration file
-       # self.cfg_dict,self.mode_dict = readConfiguration.readConfiguration(self.cfg_file,self.usr_cfg_file)
-       # self.cfg_output_dict = readConfiguration.genOutPutCfg(self.cfg_file,self.usr_cfg_file)
-       # self.cfg_dict = dict(sorted(self.cfg_dict.items(),key=lambda x:x[0]))
-       # self.cfg_output_dict = dict(sorted(self.cfg_output_dict.items(),key=lambda x:x[0]))
-       # # 默认配置值检查
-       # self.check_default_cfg()
+        ## 全选diag items
+        #self.selectalltc.clicked.connect(self.selectalltcFunc)
 
-       # #gen dict from cfg file
-       # self.designTree_dict=readConfiguration.genDesignTree(self.cfg_file,self.usr_cfg_file)
-       # 
-       # #default mode select
-       # if len(self.mode_dict) >0:
-       #     self.current_mode = list(self.mode_dict.keys())[0]
-       #     self.current_mode_dict = self.mode_dict[self.current_mode]
-       # else:
-       #     self.current_mode_dict = {}
+        ## action "Exit"
+        #self.actionExit.triggered.connect(self.exitGui)
 
        # #****************************************************
        # # add tree item
@@ -279,7 +268,11 @@ class MyMainForm(QMainWindow, Ui_smt):
     #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     #   xxxxxxxxxx      Functions       xxxxxxxxxxxx
     #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #********************************************************
+    # 运行仿真：1. 收集参数；2. 批量处理任务； 3. 收集运行结果；
+    #********************************************************
     def runSimulate(self):
+        # 1. 收集参数
         cmd = ' '
         if self.cleanCB.isChecked():
             cmd = cmd + 'clean '
@@ -299,9 +292,31 @@ class MyMainForm(QMainWindow, Ui_smt):
             cmd = cmd + 'comp '
         if self.pld_runCB.isChecked():
             cmd = cmd + 'run '
+        if self.mlCB.isChecked():
+            cmd = cmd + 'ml=1 '
+        
+        # 遍历表格的行
+        selected_items = []
+        for row in range(self.diag_table.rowCount()):
+            status_item = self.diag_table.item(row, 0)
+            item = self.diag_table.item(row, 1)
+            if item.checkState() == Qt.Checked:
+                selected_items.append(self.diag_table.item(row, 2).text())
+                # 创建QPixmap对象并设置图像
+                pixmap = QPixmap("./ico/lock.png")  # 替换为你的图像文件路径
+                pixmap = pixmap.scaled(32, 32)  # 调整图像大小
+                status_item.setIcon(QIcon(pixmap))
 
-        cmd = 'make' + cmd
-        self.textBrowser.consel(cmd, 'black')
+        for item in selected_items:
+            cmd_full = 'make test=' + item + ' ' + cmd
+            self.textBrowser.consel(cmd_full, 'black')
+
+    #********************************************************
+    # 停止仿真：1. 收集参数；2. 批量处理任务； 3. 收集运行结果；
+    #********************************************************
+    def stopSimuateFunc(self):
+        self.textBrowser.consel('stop simulate task.', 'black')
+
     #********************************************************
     # 自定义关闭串口前的动作
     #********************************************************
@@ -387,9 +402,17 @@ class MyMainForm(QMainWindow, Ui_smt):
         new_row = self.diag_table.rowCount()
         self.diag_table.insertRow(new_row)
 
-        # 在每行的最后一列添加一个勾选框
-        checkbox = QCheckBox()
-        self.diag_table.setCellWidget(new_row, 1, checkbox)
+        # 创建一个QCheckBox并将其放入单元格
+        checkbox = QTableWidgetItem()
+        checkbox.setFlags(checkbox.flags() | Qt.ItemIsUserCheckable)
+        checkbox.setCheckState(Qt.Unchecked)
+        self.diag_table.setItem(new_row, 1, checkbox)
+
+        # 设置第1列单元格的背景颜色
+        #yellow_bg_color = QColor(255, 255, 0)
+        item = QTableWidgetItem()
+        #item.setBackground(yellow_bg_color)
+        self.diag_table.setItem(new_row, 0, item)
 
         if not selected_rows:
             return
