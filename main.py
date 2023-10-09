@@ -146,49 +146,24 @@ class MyMainForm(QMainWindow, Ui_smt):
         #+++++++++++++++++++++++++++++++++++++++++++++++++++++
         # Create Diag Table
         #+++++++++++++++++++++++++++++++++++++++++++++++++++++
-        self.diag_info = extractDiag.extractDiag(self.diag_file)
-        self.textBrowser.consel("打开diag文件成功!", 'green')
-
-        # 设置初始行数和列数
-        line_nums = len(self.diag_info)
-        self.diag_table.setRowCount(line_nums)
-        self.diag_table.setColumnCount(10)
-
         # 设置选择模式为整行选择
         self.diag_table.setSelectionBehavior(QAbstractItemView.SelectRows)
         # 隐藏行序号
         self.diag_table.verticalHeader().setVisible(False)
 
         # 设置表头标签
-        table_header = [" ", " ",
+        self.table_header = [" ", " ",
                         "testcase*", 
                         "path*", 
                         "config*",
+                        "scp",
                         "comp_argvs",
                         "run_argvs",
                         "run_boards",
-                        "scp",
                         "argv"]
-        self.diag_table.setHorizontalHeaderLabels(table_header)
+        self.diag_table.setHorizontalHeaderLabels(self.table_header)
 
-        self.table_data = []  # 存储表格数据的列表
-        for row, rowData in enumerate(self.diag_info):
-            self.table_data.append(rowData)
-            for col, cellData in enumerate(rowData):
-                item = QTableWidgetItem(str(cellData))
-                self.diag_table.setItem(row, col+2, item)
-
-            # 创建一个QCheckBox并将其放入单元格
-            checkbox = QTableWidgetItem()
-            checkbox.setFlags(checkbox.flags() | Qt.ItemIsUserCheckable)
-            checkbox.setCheckState(Qt.Unchecked)
-            self.diag_table.setItem(row, 1, checkbox)
-
-            # 设置第1列单元格的背景颜色
-            #yellow_bg_color = QColor(255, 255, 0)
-            item = QTableWidgetItem()
-            #item.setBackground(yellow_bg_color)
-            self.diag_table.setItem(row, 0, item)
+        self.fillDataForTable()
 
         # 连接文本框的文本更改事件到过滤函数
         self.lineEdit.textChanged.connect(self.filterTable)
@@ -212,66 +187,90 @@ class MyMainForm(QMainWindow, Ui_smt):
         # connect buttons and function 
         #********************************************************
         # 仿真运行按键
+        icon = QIcon("./ico/play-button.png")
+        self.run.setIcon(icon)
         self.run.clicked.connect(self.runSimulate)
 
         # 停止运行指定测试项
+        icon = QIcon("./ico/pause.png")
+        self.stopSimuate.setIcon(icon)
         self.stopSimuate.clicked.connect(self.stopSimuateFunc)
 
         ## 保存diag文件
-        #self.saveDiag.clicked.connect(self.saveDiagFunc)
+        icon = QIcon("./ico/diskette.png")
+        self.saveDiag.setIcon(icon)
+        self.saveDiag.clicked.connect(self.saveDiagFunc)
 
         ## 全选diag items
-        #self.selectalltc.clicked.connect(self.selectalltcFunc)
+        icon = QIcon("./ico/select-all.png")
+        self.selectalltc.setIcon(icon)
+        self.selectalltc.clicked.connect(self.selectalltcFunc)
 
-        ## action "Exit"
-        #self.actionExit.triggered.connect(self.exitGui)
+        ## reload items
+        icon = QIcon("./ico/refresh.ico")
+        self.reload.setIcon(icon)
+        self.reload.clicked.connect(self.reloadDiagFunc)
 
-       # #****************************************************
-       # # add tree item
-       # #****************************************************
-       # self.treeWidget.setColumnCount(3)
-       # self.treeWidget.setHeaderLabels(['instance','module','item'])
-       # self.treeWidget.setColumnWidth(0,300)
-       # self.treeWidget.setColumnWidth(1,200)
-
-       # self.build_design_tree(self.treeWidget,self.designTree_dict,self.cfg_output_dict,self.cfg_dict,0,self.current_mode_dict)
-       # self.treeWidget.sortItems(0,Qt.AscendingOrder)
-
-       # #****************************************************
-       # # add mode select
-       # #****************************************************
-       # self.comboBox.addItems(self.mode_dict.keys())
-       # #编程和用户方式都会触发的是currentIndexChanged；只有用户操作才会触发的是activated()
-       # self.comboBox.activated.connect(self.mode_select)
-
-
-       # #消除child節點
-       # it = QTreeWidgetItemIterator(self.treeWidget)
-       # while it.value():
-       #     item = it.value()
-       #     if not item.isHidden():
-       #         if item.toolTip(0):
-       #             item_value = self.treeWidget.itemWidget(item,1).currentText().split(':')[0]
-       #             self.hidden_child(item,item_value,0)
-       #     it.__iadd__(1)
-
-       # #********************************************************
-       # # add table item
-       # #********************************************************
-       # self.tableWidget.setColumnCount(2)
-       # self.tableWidget.setShowGrid(False)
-       # self.tableWidget.setColumnWidth(0,300)
-       # self.tableWidget.setColumnWidth(1,200)
-       # self.tableWidget.setHorizontalHeaderLabels(['macro','value'])
-       # self.build_macro_table(self.cfg_dict,self.cfg_output_dict,self.current_mode_dict)
+        # action "Exit"
+        self.actionExit.triggered.connect(self.exitGui)
 
     #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     #   xxxxxxxxxx      Functions       xxxxxxxxxxxx
     #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def fillDataForTable(self):
+        self.diag_info = extractDiag.extractDiag(self.diag_file)
+        self.textBrowser.consel("加载diag文件成功!", 'green')
+
+        # 设置初始行数和列数
+        line_nums = len(self.diag_info)
+        self.diag_table.setRowCount(line_nums)
+        self.diag_table.setColumnCount(10)
+
+        for row, rowData in enumerate(self.diag_info):
+            path_exist = False
+            for col, cellData in enumerate(rowData):
+                item = QTableWidgetItem(str(cellData))
+                self.diag_table.setItem(row, col+2, item)
+                if col==2 and os.path.exists(os.path.join(os.getcwd(),'simdir',str(cellData))):
+                    path_exist = True
+
+            # 创建一个QCheckBox并将其放入单元格
+            checkbox = QTableWidgetItem()
+            checkbox.setFlags(checkbox.flags() | Qt.ItemIsUserCheckable)
+            checkbox.setCheckState(Qt.Unchecked)
+            self.diag_table.setItem(row, 1, checkbox)
+
+            # 设置元格Item
+            item = QTableWidgetItem()
+            if path_exist:
+                pixmap = QPixmap("./ico/approved.png")
+            else:
+                pixmap = QPixmap("./ico/null.png")
+            item.setIcon(QIcon(pixmap))
+            self.diag_table.setItem(row, 0, item)
+
     #********************************************************
     # 运行仿真：1. 收集参数；2. 批量处理任务； 3. 收集运行结果；
     #********************************************************
     def runSimulate(self):
+        # 遍历表格的行
+        selected_items = []
+        for row in range(self.diag_table.rowCount()):
+            status_item = self.diag_table.item(row, 0)
+            item = self.diag_table.item(row, 1)
+            if item.checkState() == Qt.Checked:
+                selected_items.append(self.diag_table.item(row, 2).text())
+                # 创建QPixmap对象并设置图像
+                pixmap = QPixmap("./ico/loading.png")  # 替换为你的图像文件路径
+                status_item.setIcon(QIcon(pixmap))
+
+        for item in selected_items:
+            self.runSingle(item)
+
+    #********************************************************
+    # 运行仿真：1. 收集参数；2. 运行单个用例;
+    #********************************************************
+    def runSingle(self, testcase):
         # 1. 收集参数
         cmd = ' '
         if self.cleanCB.isChecked():
@@ -295,27 +294,50 @@ class MyMainForm(QMainWindow, Ui_smt):
         if self.mlCB.isChecked():
             cmd = cmd + 'ml=1 '
         
-        # 遍历表格的行
-        selected_items = []
-        for row in range(self.diag_table.rowCount()):
-            status_item = self.diag_table.item(row, 0)
-            item = self.diag_table.item(row, 1)
-            if item.checkState() == Qt.Checked:
-                selected_items.append(self.diag_table.item(row, 2).text())
-                # 创建QPixmap对象并设置图像
-                pixmap = QPixmap("./ico/lock.png")  # 替换为你的图像文件路径
-                pixmap = pixmap.scaled(32, 32)  # 调整图像大小
-                status_item.setIcon(QIcon(pixmap))
-
-        for item in selected_items:
-            cmd_full = 'make test=' + item + ' ' + cmd
-            self.textBrowser.consel(cmd_full, 'black')
+        cmd_full = 'make test=' + testcase + ' ' + cmd
+        self.textBrowser.consel(cmd_full, 'black')
 
     #********************************************************
     # 停止仿真：1. 收集参数；2. 批量处理任务； 3. 收集运行结果；
     #********************************************************
     def stopSimuateFunc(self):
         self.textBrowser.consel('stop simulate task.', 'black')
+
+    #********************************************************
+    # 重新加载diag文件
+    #********************************************************
+    def reloadDiagFunc(self):
+        self.diag_table.clearContents()
+        self.fillDataForTable()
+
+    #********************************************************
+    # 保存diag文件
+    #********************************************************
+    def saveDiagFunc(self):
+        fout = open(self.diag_file, 'w+')
+        fout.write("// 以下为SMT自动生成内容, 遵循diag语法规则, 可以自行编辑该文件.\n\n")
+
+        for row in range(self.diag_table.rowCount()):
+            for col in range(self.diag_table.columnCount()):
+                colData = self.diag_table.item(row,col).text()
+                if col==2:
+                    fout.write(colData + ' ')
+                elif col in [3,4,5]:
+                    fout.write(self.table_header[col].strip('*')+'='+colData+' ')
+                elif col >= 6:
+                    fout.write(self.table_header[col]+'=\''+colData+'\' ')
+            fout.write('\n\n')
+
+        self.textBrowser.consel('Diag文件保存成功.', 'green')
+
+    def selectalltcFunc(self):
+        current_state = self.diag_table.item(0, 1).checkState()
+        for row in range(self.diag_table.rowCount()):
+            item = self.diag_table.item(row, 1)
+            if current_state == Qt.Unchecked:
+                item.setCheckState(Qt.Checked)
+            else:
+                item.setCheckState(Qt.Unchecked)
 
     #********************************************************
     # 自定义关闭串口前的动作
@@ -333,6 +355,9 @@ class MyMainForm(QMainWindow, Ui_smt):
         else:
             event.ignore()  # 取消关闭窗口
 
+    #********************************************************
+    # 关机确认菜单
+    #********************************************************
     def confirmation_dialog(self):
         # 创建一个确认对话框
         confirm_dialog = QMessageBox()
@@ -351,12 +376,23 @@ class MyMainForm(QMainWindow, Ui_smt):
         else:
             return False
 
+    #********************************************************
+    # 过滤table中的项
+    #********************************************************
     def filterTable(self):
         filter_text = self.lineEdit.text().strip()
-        for row, rowData in enumerate(self.table_data):
-            show_row = any(filter_text in str(cellData).lower() for cellData in rowData)
+        for row in range(self.diag_table.rowCount()):
+            show_row = False
+            for col in range(self.diag_table.columnCount()):
+                colData = self.diag_table.item(row,col).text()
+                if filter_text in colData or filter_text in colData.lower():
+                    show_row = True
+
             self.diag_table.setRowHidden(row, not show_row)
 
+    #********************************************************
+    # table右键菜单
+    #********************************************************
     def diagTableContextMenu(self, pos):
         # 创建右键菜单
         context_menu    = QMenu(self)
@@ -402,17 +438,20 @@ class MyMainForm(QMainWindow, Ui_smt):
         new_row = self.diag_table.rowCount()
         self.diag_table.insertRow(new_row)
 
-        # 创建一个QCheckBox并将其放入单元格
-        checkbox = QTableWidgetItem()
-        checkbox.setFlags(checkbox.flags() | Qt.ItemIsUserCheckable)
-        checkbox.setCheckState(Qt.Unchecked)
-        self.diag_table.setItem(new_row, 1, checkbox)
+        ## 创建一个QCheckBox并将其放入单元格
+        #checkbox = QTableWidgetItem()
+        #checkbox.setFlags(checkbox.flags() | Qt.ItemIsUserCheckable)
+        #checkbox.setCheckState(Qt.Unchecked)
+        #self.diag_table.setItem(new_row, 1, checkbox)
 
-        # 设置第1列单元格的背景颜色
-        #yellow_bg_color = QColor(255, 255, 0)
-        item = QTableWidgetItem()
-        #item.setBackground(yellow_bg_color)
-        self.diag_table.setItem(new_row, 0, item)
+        ## 设置元格Item
+        #item = QTableWidgetItem()
+        #if path_exist:
+        #    pixmap = QPixmap("./ico/approved.png")
+        #else:
+        #    pixmap = QPixmap("./ico/null.png")
+        #item.setIcon(QIcon(pixmap))
+        #self.diag_table.setItem(row, 0, item)
 
         if not selected_rows:
             return
@@ -420,6 +459,8 @@ class MyMainForm(QMainWindow, Ui_smt):
         for row in selected_rows:
             for col in range(self.diag_table.columnCount()):
                 if col in [0,1]:
+                    new_item = self.diag_table.item(row, col).clone()
+                    self.diag_table.setItem(new_row, col, new_item)
                     continue
                 source_item = self.diag_table.item(row, col)
                 if source_item:
@@ -427,6 +468,8 @@ class MyMainForm(QMainWindow, Ui_smt):
                         new_item = QTableWidgetItem(source_item.text()+'_new')
                     else:
                         new_item = QTableWidgetItem(source_item.text())
+                    # 更改单元格的背景颜色
+                    new_item.setBackground(Qt.yellow)
                     self.diag_table.setItem(new_row, col, new_item)
         
         # 调整列宽以适应内容
@@ -442,78 +485,12 @@ class MyMainForm(QMainWindow, Ui_smt):
     def loadProgress(self, progress):
         print("加载进度:", progress)
 
-    def Click_Svg(self, event):
-        # 这是鼠标点击事件的处理函数
-        # event 是一个鼠标事件对象，你可以在这里实现自定义的交互逻辑
-        pos = self.view.mapToScene(event.pos())  # 将窗口坐标映射到场景坐标
-        #items = self.scene.items(pos)
-        items = self.scene.itemAt(pos, self.view.transform())
-        #for item in items:
-        if isinstance(items, QGraphicsSvgItem):
-            self.textBrowser.consel(items.elementId(), 'black')
-                # 找到了 SVG 图像项
-                # 获取元素的属性并显示
-                #self.textBrowser.consel("Clicked on an SVG item at position (%d, %d)" %(pos.x(), pos.y()), 'black')
-                #element_index = item.renderer().elementAt(pos.toPoint())
-                #self.textBrowser.consel(element_index, 'black')
-                #element_attributes = item.renderer().elementAttributes(item.renderer().elementAt(pos.toPoint()))
-                #for attr_name, attr_value in element_attributes.items():
-                #    #print(f"{attr_name}: {attr_value}")
-                #    self.textBrowser.consel("(%s, %s)" %(attr_name, attr_value), 'black')
-                # 如果点击了 SVG 图像，检查是否有超链接
-                #if self.hasHyperlink(item, pos):
-                #    # 执行超链接相关的操作
-                #    self.textBrowser.consel("Clicked on SVG item with hyperlink",'green')
-                #else:
-                #    self.textBrowser.consel("no", 'red')
-
-    def hasHyperlink(self, svg_item, pos):
-        # 检查 QGraphicsSvgItem 是否包含超链接
-        # 解析 SVG 图像以查找 <a> 元素并获取其超链接目标
-        svg_tree = ET.parse(self.svgfile)
-        root = svg_tree.getroot()
-        for elem in root.iter():
-            if not svg_item.contains(svg_item.mapFromScene(pos)):
-                continue
-            if not elem.tag.endswith('}a'):
-                continue
-            xlink_href = elem.get('{http://www.w3.org/1999/xlink}href')
-            self.textBrowser.consel(xlink_href, 'black')
-            #if xlink_href and svg_item.contains(svg_item.mapFromScene(svg_item.sceneBoundingRect().topLeft())):
-            if xlink_href:
-                return True
-            else:
-                return False
-        return False
-
     def open_with_gvim(self):
         index = self.treeView_filebrowser.currentIndex()
         if index.isValid() and not self.dir_model.isDir(index):
             file_name = self.dir_model.filePath(index)
             self.textBrowser.consel("打开文件 %s" % (file_name), 'black')
             os.system('gvim --remote-tab-silent %s' % (file_name))
-
-    def applyConfig(self,index):
-        textOut_design = saveConfiguration.saveUnitConfiguration(self.treeWidget)
-        textOut_macro = saveConfiguration.saveMacroConfiguration(self.tableWidget)
-        self.textEdit.setPlainText(textOut_macro+textOut_design)
-
-    def saveConfigFile(self):
-        # get the input text
-        text,ok = QInputDialog.getText(self,'保存文件','文件名')
-        # 判断文件是否已经存在
-        if os.path.exists(self.saveDir+'/Makefile.'+text):
-            reply = QMessageBox.warning(self,'警告','该文件已存在，确认覆盖保存吗？',QMessageBox.Yes|QMessageBox.Yes,QMessageBox.No)
-            if reply == QMessageBox.No:
-                text,ok = QInputDialog.getText(self,'保存文件','文件名')
-        if ok and text:
-            outFile=open(self.saveDir+'/Makefile.%s' % (text),'w')
-            # 从gui界面保存配置，所见即所得，被关闭的子节点及叶节点将不出现在配置文件中
-            #textOut_cfg = saveConfiguration.saveConfigFileFromGui(self.tableWidget,self.treeWidget)
-            # 从主配置字典中保存配置，则被关闭的子节点及叶节点都会被保存入配置文件中
-            textOut_cfg = saveConfiguration.saveConfigFile(self.cfg_output_dict)
-            outFile.write(textOut_cfg)
-            outFile.close()
 
     def creat_rightmenu(self):
         self.treeView_menu=QMenu(self)

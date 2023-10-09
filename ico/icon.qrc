@@ -7,5 +7,16 @@
     <file>new_doc.png</file>
     <file>process.ico</file>
     <file>tools.ico</file>
+    <file>approved.png</file>
+    <file>check-mark.png</file>
+    <file>coda.png</file>
+    <file>diskette.png</file>
+    <file>download.ico</file>
+    <file>install.png</file>
+    <file>loading.png</file>
+    <file>null.png</file>
+    <file>pause.png</file>
+    <file>play-button.png</file>
+    <file>select-all.png</file>
   </qresource>
 </RCC>

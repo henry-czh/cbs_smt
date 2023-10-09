@@ -331,8 +331,8 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>760</width>
-               <height>530</height>
+               <width>891</width>
+               <height>566</height>
               </rect>
              </property>
              <property name="sizePolicy">
@@ -400,6 +400,13 @@
              <widget class="QPushButton" name="saveDiag">
               <property name="text">
                <string>保存</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="reload">
+              <property name="text">
+               <string>Reload</string>
               </property>
              </widget>
             </item>
@@ -657,6 +664,13 @@
               </property>
              </widget>
             </item>
+            <item>
+             <widget class="QProgressBar" name="progressBar">
+              <property name="value">
+               <number>24</number>
+              </property>
+             </widget>
+            </item>
            </layout>
           </item>
          </layout>
@@ -749,7 +763,7 @@
      <x>0</x>
      <y>0</y>
      <width>1245</width>
-     <height>25</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

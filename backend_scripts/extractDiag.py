@@ -66,10 +66,10 @@ def extractDiag(diag_file):
         single_item = [test]
         single_item.append(' '.join(diag_dict[test]['testdir']))
         single_item.append(' '.join(diag_dict[test]['config']))
+        single_item.append(' '.join(diag_dict[test]['scp']))
         single_item.append(' '.join(diag_dict[test]['cargvs']))
         single_item.append(' '.join(diag_dict[test]['rargvs']))
         single_item.append(' '.join(diag_dict[test]['boards']))
-        single_item.append(' '.join(diag_dict[test]['scp']))
         single_item.append(' '.join(diag_dict[test]['argvs']))
 
         diag_info.append(single_item)

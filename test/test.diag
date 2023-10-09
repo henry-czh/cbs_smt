@@ -1,5 +1,12 @@
-testcase0 path=hello_world config=111 argv='+define+TIMEOUT=50000' run_boards='0,1,2,3'
-testcase1 path=hello_world config=112 argv='+define+TIMEOUT=50000' run_boards='0,1,2,3'
-testcase2 path=hello_world config=113 argv='+define+TIMEOUT=50000' run_boards='0,1,2,3'
-testcase3 path=hello_world config=114 argv='+define+TIMEOUT=50000' run_boards='0,1,2,3'
-testcase4 path=hello_world config=115 argv='+define+TIMEOUT=50000' run_boards='0,1,2,3'
+// 以下为SMT自动生成内容, 遵循diag语法规则, 可以自行编辑该文件.
+
+testcase0 path=hello_world config=111 scp= comp_argvs='' run_argvs='' run_boards='0,1,2,3' argv='+define+TIMEOUT=50000' 
+
+testcase1 path=hello_world config=112 scp= comp_argvs='' run_argvs='' run_boards='0,1,2,3' argv='+define+TIMEOUT=50000' 
+
+testcase2 path=hello_world config=113 scp= comp_argvs='' run_argvs='' run_boards='0,1,2,3' argv='+define+TIMEOUT=50000' 
+
+testcase2_new path=hello_world config=114 scp= comp_argvs='' run_argvs='' run_boards='0,1,2,3' argv='+define+TIMEOUT=50000' 
+
+testcase3 path=hello_world config=114 scp= comp_argvs='' run_argvs='' run_boards='0,1,2,3' argv='+define+TIMEOUT=50000' 
+
