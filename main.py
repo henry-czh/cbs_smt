@@ -126,11 +126,13 @@ class MyMainForm(QMainWindow, Ui_smt):
         #+++++++++++++++++++++++++++++++++++++++++++++++++++++
         self.dir_model = QFileSystemModel()
         self.dir_model.setReadOnly(True)
+
         #self.current_path = QDir.currentPath()
         self.current_path = os.getenv('CBS_HOME')
         self.dir_model.setRootPath(self.current_path)
         self.treeView_filebrowser.setModel(self.dir_model)
         self.treeView_filebrowser.setRootIndex(self.dir_model.index(self.current_path))
+
         self.treeView_filebrowser.setColumnWidth(0, 300)
 
         # create right menu
@@ -447,6 +449,7 @@ class MyMainForm(QMainWindow, Ui_smt):
         action_add.triggered.connect(self.addTableItem)
         action_run.triggered.connect(self.runTableItem)
         action_config.triggered.connect(self.showTableConfig)
+        action_stimuli.triggered.connect(self.showSource)
 
         # 将菜单项添加到右键菜单
         #context_menu.addAction(action_edit)
@@ -461,15 +464,40 @@ class MyMainForm(QMainWindow, Ui_smt):
         # 显示右键菜单
         context_menu.exec_(self.diag_table.mapToGlobal(pos))
 
+    def showSource(self):
+        selected_items = self.diag_table.selectedItems()
+        # 每行有10个items
+        if len(selected_items) > 12:
+            self.textBrowser.consel("一次只能查询一个测试项的配置！\n", 'red')
+
+        path = self.diag_table.item(selected_items[0].row(), 3).text().strip()
+        source_path = os.path.join(os.getcwd(), 'src/c', path)
+        self.dir_model.setRootPath(source_path)
+        self.treeView_filebrowser.setModel(self.dir_model)
+        self.treeView_filebrowser.setRootIndex(self.dir_model.index(source_path))
+
+    def showTB(self):
+        self.dir_model.setRootPath(os.getenv('TB_HOME'))
+
     def showTableConfig(self):
+        selected_items = self.diag_table.selectedItems()
+
+        # 每行有10个items
+        if len(selected_items) > 12:
+            self.textBrowser.consel("一次只能查询一个测试项的配置！\n", 'red')
+
+        config_name = self.diag_table.item(selected_items[0].row(), 4).text().strip()
+        with open(os.path.join(os.getcwd(),'config/')+config_name+'.mk', 'r') as file:
+            file_contents = file.read()
+
         # 在这里触发执行Web页面中的JavaScript函数
-        function_name = "pyqtLoadConfig"
-        html = "Hello from PyQt!"
-        svg = "111"
-        script = f"{function_name}('{html}', '{svg}');"
-        self.web_view.page().runJavaScript(script)
+        js_code = "pyqtLoadConfig(\"%s\");" % (file_contents.replace('\n', '\\n'))
+        self.web_view.page().runJavaScript(js_code)
+        self.showSVGTab()
 
-
+    def showSVGTab(self):
+        self.main_tabWidget.setCurrentIndex(0)
+        
     def editTableItem(self):
         # 编辑选定的表格项
         selected_items = self.diag_table.selectedItems()

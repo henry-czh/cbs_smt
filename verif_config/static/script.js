@@ -18,6 +18,7 @@
 
 new QWebChannel(qt.webChannelTransport, function(channel) {
     var dataObj = channel.objects.dataObj;
+
     var svg_div = document.getElementById("svg_div");
 
     // 设置数据到Python
@@ -285,6 +286,24 @@ function SetUl(ul) {
         alert(res.message);
     }
 
+    window.pyqtLoadConfig = async function (configs_str) {
+        try {
+            var re1 = await dataObj.LoadHtml(configs_str);
+        } catch (error) {
+            console.error("Load配置文件2:", error);
+        }
+        var uls = JSON.parse(re1);
+        data = {fileContent: configs_str, skt: uls["skts"][0]};
+
+        try {
+            var re2 = await dataObj.LoadSvg(data);
+        } catch (error) {
+            console.error("Load配置文件2:", error);
+        }
+        svg_div.innerHTML = re2;
+        BindEvent(uls);
+    }
+
     window.LoadConfig = async function () {
         var ext = fileLoad.value.split(/[.,/,\\]/).slice(-2, -1);
         var reader = new FileReader();
@@ -342,26 +361,7 @@ function MultipleSubmit() {
 
 });
 
-    function pyqtLoadConfig(html, svg) {
-        alert("hello pyqt")
-        //var uls = JSON.parse(html);
-        //svg_div.innerHTML = svg;
-        //BindEvent(uls);
 
-        //var ext = fileLoad.value.split(/[.,/,\\]/).slice(-2, -1);
-        //var reader = new FileReader();
-        //reader.onload = function() {
-        //    //alert(reader.result);
-        //    DoAjax("cgi-bin/server.py?LoadHtml", reader.result, function(re1) {
-        //        var uls = JSON.parse(re1);
-        //        data = {fileContent: reader.result, skt: uls["skts"][0]};
-        //        DoAjax("cgi-bin/server.py?LoadSvg", JSON.stringify(data), function(re2) {
-        //            svg_div.innerHTML = re2;
-        //            fileSave.value = ext;
-        //            BindEvent(uls);
-        //        });
-        //    });
-        //    fileLoad.value = "";
-        //}
-        //reader.readAsText(fileLoad.files[0]);
-    }
+function test() {
+    pyqtLoadConfig("1111");
+}
