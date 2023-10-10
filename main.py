@@ -151,20 +151,10 @@ class MyMainForm(QMainWindow, Ui_smt):
         # 隐藏行序号
         self.diag_table.verticalHeader().setVisible(False)
 
-        # 设置表头标签
-        self.table_header = [" ", " ",
-                        "testcase*", 
-                        "path*", 
-                        "config*",
-                        "scp",
-                        "comp_argvs",
-                        "run_argvs",
-                        "run_boards",
-                        "argv"]
-        self.diag_table.setHorizontalHeaderLabels(self.table_header)
-
         self.fillDataForTable()
 
+        # 连接到itemChanged信号
+        self.diag_table.itemChanged.connect(self.handleItemChanged)
         # 连接文本框的文本更改事件到过滤函数
         self.lineEdit.textChanged.connect(self.filterTable)
         # 设置占位符文本
@@ -217,6 +207,9 @@ class MyMainForm(QMainWindow, Ui_smt):
     #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     #   xxxxxxxxxx      Functions       xxxxxxxxxxxx
     #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #********************************************************
+    # 填充diag table的内容
+    #********************************************************
     def fillDataForTable(self):
         self.diag_info = extractDiag.extractDiag(self.diag_file)
         self.textBrowser.consel("加载diag文件成功!", 'green')
@@ -225,6 +218,20 @@ class MyMainForm(QMainWindow, Ui_smt):
         line_nums = len(self.diag_info)
         self.diag_table.setRowCount(line_nums)
         self.diag_table.setColumnCount(10)
+
+        # 设置表头标签
+        self.table_header = [" ", " ",
+                        "testcase*", 
+                        "path*", 
+                        "config*",
+                        "scp",
+                        "comp_argvs",
+                        "run_argvs",
+                        "run_boards",
+                        "argv"]
+        self.diag_table.setHorizontalHeaderLabels(self.table_header)
+
+        self.previous_data = [[str(cellData) for cellData in row] for row in self.diag_info]
 
         for row, rowData in enumerate(self.diag_info):
             path_exist = False
@@ -247,7 +254,34 @@ class MyMainForm(QMainWindow, Ui_smt):
             else:
                 pixmap = QPixmap("./ico/null.png")
             item.setIcon(QIcon(pixmap))
+            #item.setBackground(Qt.white)
             self.diag_table.setItem(row, 0, item)
+            item.setBackground(QColor(255, 255, 255))  # 恢复默认背景颜色
+
+    #********************************************************
+    # 当diag table发生编辑时，触发相关函数 1. 改变背景颜色；
+    #********************************************************
+    def handleItemChanged(self, item):
+        # 处理单元格内容更改事件
+        if item:
+            row = item.row()
+            col = item.column()
+            if col < 2:
+                return
+            new_text = item.text()
+            # 新增的行没有在previous_data中
+            if row >= len(self.previous_data):
+                old_text = ''
+                self.previous_data.append([""] * self.diag_table.columnCount())
+            else:
+                old_text = self.previous_data[row][col-2]
+
+            if new_text != old_text:
+                # 只在文本更改时更改背景颜色
+                item.setBackground(Qt.yellow)
+
+            # 更新previous_data以反映新的文本
+            self.previous_data[row][col-2] = new_text
 
     #********************************************************
     # 运行仿真：1. 收集参数；2. 批量处理任务； 3. 收集运行结果；
@@ -308,6 +342,7 @@ class MyMainForm(QMainWindow, Ui_smt):
     #********************************************************
     def reloadDiagFunc(self):
         self.diag_table.clearContents()
+        self.previous_data = []
         self.fillDataForTable()
 
     #********************************************************
@@ -326,6 +361,7 @@ class MyMainForm(QMainWindow, Ui_smt):
                     fout.write(self.table_header[col].strip('*')+'='+colData+' ')
                 elif col >= 6:
                     fout.write(self.table_header[col]+'=\''+colData+'\' ')
+                self.diag_table.item(row,col).setBackground(QColor(255, 255, 255))  # 恢复默认背景颜色
             fout.write('\n\n')
 
         self.textBrowser.consel('Diag文件保存成功.', 'green')
@@ -399,19 +435,40 @@ class MyMainForm(QMainWindow, Ui_smt):
         action_edit     = QAction("编辑", self)
         action_delete   = QAction("删除", self)
         action_add      = QAction("新增", self)
+        action_run      = QAction("运行", self)
+        action_config   = QAction("查看配置详情", self)
+        action_stimuli  = QAction("查看激励详情", self)
+        action_result   = QAction("查看运行结果", self)
+        action_testbench= QAction("查看testbench", self)
 
         # 连接菜单项的槽函数
         action_edit.triggered.connect(self.editTableItem)
         action_delete.triggered.connect(self.deleteTableItem)
         action_add.triggered.connect(self.addTableItem)
+        action_run.triggered.connect(self.runTableItem)
+        action_config.triggered.connect(self.showTableConfig)
 
         # 将菜单项添加到右键菜单
         #context_menu.addAction(action_edit)
-        context_menu.addAction(action_delete)
         context_menu.addAction(action_add)
+        context_menu.addAction(action_run)
+        context_menu.addAction(action_delete)
+        context_menu.addAction(action_config)
+        context_menu.addAction(action_stimuli)
+        context_menu.addAction(action_result)
+        context_menu.addAction(action_testbench)
 
         # 显示右键菜单
         context_menu.exec_(self.diag_table.mapToGlobal(pos))
+
+    def showTableConfig(self):
+        # 在这里触发执行Web页面中的JavaScript函数
+        function_name = "pyqtLoadConfig"
+        html = "Hello from PyQt!"
+        svg = "111"
+        script = f"{function_name}('{html}', '{svg}');"
+        self.web_view.page().runJavaScript(script)
+
 
     def editTableItem(self):
         # 编辑选定的表格项
@@ -427,7 +484,20 @@ class MyMainForm(QMainWindow, Ui_smt):
             selected_rows.add(item.row())
 
         for row in selected_rows:
+            # 从previous_data中删除相应的行
+            del self.previous_data[row]
             self.diag_table.removeRow(row)
+
+    def runTableItem(self):
+        selected_rows = set()
+        for item in self.diag_table.selectedItems():
+            selected_rows.add(item.row())
+
+        if not selected_rows:
+            self.textBrowser.consel("没有选中的项，运行取消.", 'yellow')
+
+        for row in selected_rows:
+            self.runSingle(self.diag_table.item(row,2).text())
 
     def addTableItem(self):
         # 新增一行并复制当前选中的行
@@ -437,21 +507,6 @@ class MyMainForm(QMainWindow, Ui_smt):
 
         new_row = self.diag_table.rowCount()
         self.diag_table.insertRow(new_row)
-
-        ## 创建一个QCheckBox并将其放入单元格
-        #checkbox = QTableWidgetItem()
-        #checkbox.setFlags(checkbox.flags() | Qt.ItemIsUserCheckable)
-        #checkbox.setCheckState(Qt.Unchecked)
-        #self.diag_table.setItem(new_row, 1, checkbox)
-
-        ## 设置元格Item
-        #item = QTableWidgetItem()
-        #if path_exist:
-        #    pixmap = QPixmap("./ico/approved.png")
-        #else:
-        #    pixmap = QPixmap("./ico/null.png")
-        #item.setIcon(QIcon(pixmap))
-        #self.diag_table.setItem(row, 0, item)
 
         if not selected_rows:
             return

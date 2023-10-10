@@ -2,11 +2,9 @@
 
 testcase0 path=hello_world config=111 scp= comp_argvs='' run_argvs='' run_boards='0,1,2,3' argv='+define+TIMEOUT=50000' 
 
-testcase1 path=hello_world config=112 scp= comp_argvs='' run_argvs='' run_boards='0,1,2,3' argv='+define+TIMEOUT=50000' 
-
 testcase2 path=hello_world config=113 scp= comp_argvs='' run_argvs='' run_boards='0,1,2,3' argv='+define+TIMEOUT=50000' 
 
-testcase2_new path=hello_world config=114 scp= comp_argvs='' run_argvs='' run_boards='0,1,2,3' argv='+define+TIMEOUT=50000' 
-
 testcase3 path=hello_world config=114 scp= comp_argvs='' run_argvs='' run_boards='0,1,2,3' argv='+define+TIMEOUT=50000' 
+
+testcase5 path=hello_world config=115 scp= comp_argvs='' run_argvs='' run_boards='0,1,2,3' argv='+define+TIMEOUT=50000' 
 

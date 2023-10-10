@@ -332,7 +332,7 @@
                <x>0</x>
                <y>0</y>
                <width>891</width>
-               <height>566</height>
+               <height>563</height>
               </rect>
              </property>
              <property name="sizePolicy">
@@ -358,72 +358,44 @@
          </attribute>
          <layout class="QVBoxLayout" name="verticalLayout_2">
           <item>
-           <widget class="QTableWidget" name="diag_table">
-            <property name="dragEnabled">
-             <bool>true</bool>
-            </property>
-            <property name="alternatingRowColors">
-             <bool>true</bool>
-            </property>
-            <property name="showGrid">
-             <bool>false</bool>
-            </property>
-            <property name="gridStyle">
-             <enum>Qt::DashLine</enum>
-            </property>
-            <property name="sortingEnabled">
-             <bool>true</bool>
-            </property>
-            <attribute name="horizontalHeaderCascadingSectionResizes">
-             <bool>true</bool>
-            </attribute>
-            <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
-             <bool>true</bool>
-            </attribute>
-            <attribute name="horizontalHeaderStretchLastSection">
-             <bool>true</bool>
-            </attribute>
-            <attribute name="verticalHeaderCascadingSectionResizes">
-             <bool>true</bool>
-            </attribute>
-            <attribute name="verticalHeaderShowSortIndicator" stdset="0">
-             <bool>true</bool>
-            </attribute>
-            <attribute name="verticalHeaderStretchLastSection">
-             <bool>false</bool>
-            </attribute>
-           </widget>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_4">
+           <layout class="QHBoxLayout" name="horizontalLayout">
             <item>
-             <widget class="QPushButton" name="saveDiag">
+             <widget class="QPushButton" name="run">
+              <property name="toolTip">
+               <string>执行选中testcase的指定任务，可多任务并行</string>
+              </property>
               <property name="text">
-               <string>保存</string>
+               <string>运行</string>
+              </property>
+              <property name="icon">
+               <iconset>
+                <normaloff>ico/new_doc.png</normaloff>ico/new_doc.png</iconset>
+              </property>
+              <property name="checkable">
+               <bool>false</bool>
+              </property>
+              <property name="checked">
+               <bool>false</bool>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="reload">
+             <widget class="QPushButton" name="stopSimuate">
+              <property name="toolTip">
+               <string>停止选中的testcase项的执行</string>
+              </property>
               <property name="text">
-               <string>Reload</string>
+               <string>停止</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="selectalltc">
-              <property name="text">
-               <string>全选</string>
+             <widget class="QProgressBar" name="progressBar">
+              <property name="toolTip">
+               <string>任务进度</string>
               </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="lineEdit">
-              <property name="tabletTracking">
-               <bool>true</bool>
-              </property>
-              <property name="clearButtonEnabled">
-               <bool>true</bool>
+              <property name="value">
+               <number>0</number>
               </property>
              </widget>
             </item>
@@ -615,14 +587,14 @@
               </property>
              </widget>
             </item>
-            <item row="3" column="0">
+            <item row="2" column="1">
              <widget class="QCheckBox" name="cloudCB">
               <property name="text">
                <string>cloud-platform</string>
               </property>
              </widget>
             </item>
-            <item row="3" column="1">
+            <item row="4" column="1">
              <widget class="QCheckBox" name="updateconfigsCB">
               <property name="text">
                <string>update-configs</string>
@@ -639,39 +611,91 @@
            </widget>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout">
+           <layout class="QHBoxLayout" name="horizontalLayout_4">
             <item>
-             <widget class="QPushButton" name="run">
+             <widget class="QPushButton" name="saveDiag">
+              <property name="toolTip">
+               <string>保存修改后的diag内容到本地文件</string>
+              </property>
               <property name="text">
-               <string>运行</string>
-              </property>
-              <property name="icon">
-               <iconset>
-                <normaloff>ico/new_doc.png</normaloff>ico/new_doc.png</iconset>
-              </property>
-              <property name="checkable">
-               <bool>false</bool>
-              </property>
-              <property name="checked">
-               <bool>false</bool>
+               <string>保存</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="stopSimuate">
+             <widget class="QPushButton" name="reload">
+              <property name="toolTip">
+               <string>同步本地diag文件内容</string>
+              </property>
               <property name="text">
-               <string>停止</string>
+               <string>刷新</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QProgressBar" name="progressBar">
-              <property name="value">
-               <number>24</number>
+             <widget class="QPushButton" name="selectalltc">
+              <property name="toolTip">
+               <string>选择全部testcase项</string>
+              </property>
+              <property name="text">
+               <string>全选</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="lineEdit">
+              <property name="tabletTracking">
+               <bool>true</bool>
+              </property>
+              <property name="clearButtonEnabled">
+               <bool>true</bool>
               </property>
              </widget>
             </item>
            </layout>
+          </item>
+          <item>
+           <widget class="QTableWidget" name="diag_table">
+            <property name="toolTip">
+             <string/>
+            </property>
+            <property name="editTriggers">
+             <set>QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed</set>
+            </property>
+            <property name="dragEnabled">
+             <bool>true</bool>
+            </property>
+            <property name="alternatingRowColors">
+             <bool>true</bool>
+            </property>
+            <property name="showGrid">
+             <bool>false</bool>
+            </property>
+            <property name="gridStyle">
+             <enum>Qt::DashLine</enum>
+            </property>
+            <property name="sortingEnabled">
+             <bool>true</bool>
+            </property>
+            <attribute name="horizontalHeaderCascadingSectionResizes">
+             <bool>true</bool>
+            </attribute>
+            <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+             <bool>true</bool>
+            </attribute>
+            <attribute name="horizontalHeaderStretchLastSection">
+             <bool>true</bool>
+            </attribute>
+            <attribute name="verticalHeaderCascadingSectionResizes">
+             <bool>true</bool>
+            </attribute>
+            <attribute name="verticalHeaderShowSortIndicator" stdset="0">
+             <bool>true</bool>
+            </attribute>
+            <attribute name="verticalHeaderStretchLastSection">
+             <bool>false</bool>
+            </attribute>
+           </widget>
           </item>
          </layout>
         </widget>
@@ -763,7 +787,7 @@
      <x>0</x>
      <y>0</y>
      <width>1245</width>
-     <height>22</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

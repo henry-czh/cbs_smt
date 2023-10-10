@@ -341,3 +341,27 @@ function MultipleSubmit() {
 }
 
 });
+
+    function pyqtLoadConfig(html, svg) {
+        alert("hello pyqt")
+        //var uls = JSON.parse(html);
+        //svg_div.innerHTML = svg;
+        //BindEvent(uls);
+
+        //var ext = fileLoad.value.split(/[.,/,\\]/).slice(-2, -1);
+        //var reader = new FileReader();
+        //reader.onload = function() {
+        //    //alert(reader.result);
+        //    DoAjax("cgi-bin/server.py?LoadHtml", reader.result, function(re1) {
+        //        var uls = JSON.parse(re1);
+        //        data = {fileContent: reader.result, skt: uls["skts"][0]};
+        //        DoAjax("cgi-bin/server.py?LoadSvg", JSON.stringify(data), function(re2) {
+        //            svg_div.innerHTML = re2;
+        //            fileSave.value = ext;
+        //            BindEvent(uls);
+        //        });
+        //    });
+        //    fileLoad.value = "";
+        //}
+        //reader.readAsText(fileLoad.files[0]);
+    }
