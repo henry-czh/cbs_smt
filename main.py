@@ -293,8 +293,39 @@ class MyMainForm(QMainWindow, Ui_smt):
     # 运行仿真：1. 收集参数；2. 批量处理任务； 3. 收集运行结果；
     #********************************************************
     def runSimulate(self):
-        mutiWorkThreads = MutiWorkThread(self.diag_table, self.textBrowser, self.progressBar)
+        cmd = self.collectOpts()
+        self.mutiWorkThreads = MutiWorkThread(self.diag_table, self.textBrowser, self.progressBar)
+        self.mutiWorkThreads.run(cmd)
 
+    #********************************************************
+    # 运行仿真：1. 收集参数；
+    #********************************************************
+    def collectOpts(self):
+        # 1. 收集参数
+        cmd = 'make '
+        if self.cleanCB.isChecked():
+            cmd = cmd + 'clean '
+        if self.updateconfigsCB.isChecked():
+            cmd = cmd + 'updateconfigs '
+        if self.buildCB.isChecked():
+            cmd = cmd + 'build '
+        if self.compiler.isChecked():
+            cmd = cmd + 'compiler '
+        if self.simu_runCB.isChecked():
+            cmd = cmd + 'run '
+        if self.simu_elabCB.isChecked():
+            cmd = cmd + 'elab '
+        if self.simu_simCB.isChecked():
+            cmd = cmd + 'sim '
+        if self.pldcompCB.isChecked():
+            cmd = cmd + 'comp '
+        if self.pld_runCB.isChecked():
+            cmd = cmd + 'run '
+        if self.mlCB.isChecked():
+            cmd = cmd + 'ml=1 '
+        
+        self.textBrowser.consel(cmd, 'black')
+        return cmd
     #********************************************************
     # 停止仿真：1. 收集参数；2. 批量处理任务； 3. 收集运行结果；
     #********************************************************
