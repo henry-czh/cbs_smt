@@ -120,7 +120,7 @@
          <number>0</number>
         </property>
         <property name="tabsClosable">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
         <widget class="QWidget" name="FileBrowser">
          <property name="sizePolicy">
@@ -278,10 +278,10 @@
          <enum>QTabWidget::West</enum>
         </property>
         <property name="currentIndex">
-         <number>1</number>
+         <number>0</number>
         </property>
         <property name="tabsClosable">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
         <property name="movable">
          <bool>true</bool>
@@ -306,7 +306,7 @@
           </font>
          </property>
          <attribute name="title">
-          <string>svgtab</string>
+          <string>配置管理</string>
          </attribute>
          <layout class="QHBoxLayout" name="horizontalLayout_3">
           <item>
@@ -331,7 +331,7 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>891</width>
+               <width>894</width>
                <height>563</height>
               </rect>
              </property>
@@ -354,7 +354,7 @@
           </font>
          </property>
          <attribute name="title">
-          <string>macrotab</string>
+          <string>仿真管理</string>
          </attribute>
          <layout class="QVBoxLayout" name="verticalLayout_2">
           <item>

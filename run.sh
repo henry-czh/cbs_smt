@@ -5,7 +5,7 @@ export SVG_FILE=/home/czh/github/cbs_smt/verif_config/test/demo.svg
 export HTML_FILE=/home/czh/github/cbs_smt/verif_config/qtconfig.html
 export DIAG_FILE=/home/czh/github/cbs_smt/test/test.diag
 export CBS_HOME=.
-export TB_HOME=./test
+export TB_HOME=/home/czh/github/cbs_smb/
 export DEFAULT_MODE=default
 
 #python2 ./verif_config/cgi-bin/parseConfig.py $BASE_CONFIG_FILE $USER_CONFIG_FILE

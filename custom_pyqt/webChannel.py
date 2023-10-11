@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow
 from PyQt5.QtWebChannel import QWebChannel
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 
-append_path = os.path.join(os.getcwd(), '../verif_config/cgi-bin')
+append_path = os.path.join(os.path.dirname(__file__), '../verif_config/cgi-bin')
 sys.path.append(append_path)
 import tool
 

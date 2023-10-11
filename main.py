@@ -25,6 +25,7 @@ from ui.uvs import Ui_smt
 from backend_scripts import genDesignTree
 from backend_scripts import extractDiag
 from custom_pyqt import webChannel
+from custom_pyqt.workerThread import MutiWorkThread
 from custom_pyqt.custom_widget import *
 from ico import icon
 
@@ -179,32 +180,35 @@ class MyMainForm(QMainWindow, Ui_smt):
         # connect buttons and function 
         #********************************************************
         # 仿真运行按键
-        icon = QIcon("./ico/play-button.png")
-        self.run.setIcon(icon)
+        #icon = QIcon("./ico/play-button.png")
+        #self.run.setIcon(icon)
         self.run.clicked.connect(self.runSimulate)
 
         # 停止运行指定测试项
-        icon = QIcon("./ico/pause.png")
-        self.stopSimuate.setIcon(icon)
+        #icon = QIcon("./ico/pause.png")
+        #self.stopSimuate.setIcon(icon)
         self.stopSimuate.clicked.connect(self.stopSimuateFunc)
 
         ## 保存diag文件
-        icon = QIcon("./ico/diskette.png")
-        self.saveDiag.setIcon(icon)
+        #icon = QIcon("./ico/diskette.png")
+        #self.saveDiag.setIcon(icon)
         self.saveDiag.clicked.connect(self.saveDiagFunc)
 
         ## 全选diag items
-        icon = QIcon("./ico/select-all.png")
-        self.selectalltc.setIcon(icon)
+        #icon = QIcon("./ico/select-all.png")
+        #self.selectalltc.setIcon(icon)
         self.selectalltc.clicked.connect(self.selectalltcFunc)
 
         ## reload items
-        icon = QIcon("./ico/refresh.ico")
-        self.reload.setIcon(icon)
+        #icon = QIcon("./ico/refresh.ico")
+        #self.reload.setIcon(icon)
         self.reload.clicked.connect(self.reloadDiagFunc)
 
         # action "Exit"
         self.actionExit.triggered.connect(self.exitGui)
+
+        # action "refresh file browser"
+        self.actionreload.triggered.connect(self.refreshFileBrowser)
 
     #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     #   xxxxxxxxxx      Functions       xxxxxxxxxxxx
@@ -252,9 +256,9 @@ class MyMainForm(QMainWindow, Ui_smt):
             # 设置元格Item
             item = QTableWidgetItem()
             if path_exist:
-                pixmap = QPixmap("./ico/approved.png")
+                pixmap = QPixmap("../ico/approved.png")
             else:
-                pixmap = QPixmap("./ico/null.png")
+                pixmap = QPixmap("../ico/null.png")
             item.setIcon(QIcon(pixmap))
             #item.setBackground(Qt.white)
             self.diag_table.setItem(row, 0, item)
@@ -289,49 +293,7 @@ class MyMainForm(QMainWindow, Ui_smt):
     # 运行仿真：1. 收集参数；2. 批量处理任务； 3. 收集运行结果；
     #********************************************************
     def runSimulate(self):
-        # 遍历表格的行
-        selected_items = []
-        for row in range(self.diag_table.rowCount()):
-            status_item = self.diag_table.item(row, 0)
-            item = self.diag_table.item(row, 1)
-            if item.checkState() == Qt.Checked:
-                selected_items.append(self.diag_table.item(row, 2).text())
-                # 创建QPixmap对象并设置图像
-                pixmap = QPixmap("./ico/loading.png")  # 替换为你的图像文件路径
-                status_item.setIcon(QIcon(pixmap))
-
-        for item in selected_items:
-            self.runSingle(item)
-
-    #********************************************************
-    # 运行仿真：1. 收集参数；2. 运行单个用例;
-    #********************************************************
-    def runSingle(self, testcase):
-        # 1. 收集参数
-        cmd = ' '
-        if self.cleanCB.isChecked():
-            cmd = cmd + 'clean '
-        if self.updateconfigsCB.isChecked():
-            cmd = cmd + 'updateconfigs '
-        if self.buildCB.isChecked():
-            cmd = cmd + 'build '
-        if self.compiler.isChecked():
-            cmd = cmd + 'compiler '
-        if self.simu_runCB.isChecked():
-            cmd = cmd + 'run '
-        if self.simu_elabCB.isChecked():
-            cmd = cmd + 'elab '
-        if self.simu_simCB.isChecked():
-            cmd = cmd + 'sim '
-        if self.pldcompCB.isChecked():
-            cmd = cmd + 'comp '
-        if self.pld_runCB.isChecked():
-            cmd = cmd + 'run '
-        if self.mlCB.isChecked():
-            cmd = cmd + 'ml=1 '
-        
-        cmd_full = 'make test=' + testcase + ' ' + cmd
-        self.textBrowser.consel(cmd_full, 'black')
+        mutiWorkThreads = MutiWorkThread(self.diag_table, self.textBrowser, self.progressBar)
 
     #********************************************************
     # 停止仿真：1. 收集参数；2. 批量处理任务； 3. 收集运行结果；
@@ -440,7 +402,7 @@ class MyMainForm(QMainWindow, Ui_smt):
         action_run      = QAction("运行", self)
         action_config   = QAction("查看配置详情", self)
         action_stimuli  = QAction("查看激励详情", self)
-        action_result   = QAction("查看运行结果", self)
+        action_simdir   = QAction("查看运行结果", self)
         action_testbench= QAction("查看testbench", self)
 
         # 连接菜单项的槽函数
@@ -450,6 +412,8 @@ class MyMainForm(QMainWindow, Ui_smt):
         action_run.triggered.connect(self.runTableItem)
         action_config.triggered.connect(self.showTableConfig)
         action_stimuli.triggered.connect(self.showSource)
+        action_testbench.triggered.connect(self.showTB)
+        action_simdir.triggered.connect(self.showSimdir)
 
         # 将菜单项添加到右键菜单
         #context_menu.addAction(action_edit)
@@ -458,35 +422,51 @@ class MyMainForm(QMainWindow, Ui_smt):
         context_menu.addAction(action_delete)
         context_menu.addAction(action_config)
         context_menu.addAction(action_stimuli)
-        context_menu.addAction(action_result)
+        context_menu.addAction(action_simdir)
         context_menu.addAction(action_testbench)
 
         # 显示右键菜单
         context_menu.exec_(self.diag_table.mapToGlobal(pos))
 
     def showSource(self):
-        selected_items = self.diag_table.selectedItems()
-        # 每行有10个items
-        if len(selected_items) > 12:
-            self.textBrowser.consel("一次只能查询一个测试项的配置！\n", 'red')
+        selected_item = self.getSelectedRow();
 
-        path = self.diag_table.item(selected_items[0].row(), 3).text().strip()
+        path = self.diag_table.item(selected_item.row(), 3).text().strip()
         source_path = os.path.join(os.getcwd(), 'src/c', path)
-        self.dir_model.setRootPath(source_path)
-        self.treeView_filebrowser.setModel(self.dir_model)
-        self.treeView_filebrowser.setRootIndex(self.dir_model.index(source_path))
+
+        if os.path.exists(source_path):
+            self.treeView_filebrowser.setRootIndex(self.dir_model.index(source_path))
+        else:
+            self.textBrowser.consel("路径不存在: %s" % (source_path), 'red')
+
+    def showSimdir(self):
+        selected_item = self.getSelectedRow();
+
+        path = self.diag_table.item(selected_item.row(), 3).text().strip()
+        source_path = os.path.join(os.getcwd(), 'simdir', path)
+        if os.path.exists(source_path):
+            self.treeView_filebrowser.setRootIndex(self.dir_model.index(source_path))
+        else:
+            self.textBrowser.consel("路径不存在: %s" % (source_path), 'red')
+
+    def refreshFileBrowser(self):
+        source_path = os.getenv('CBS_HOME')
+        if os.path.exists(source_path):
+            self.treeView_filebrowser.setRootIndex(self.dir_model.index(source_path))
+        else:
+            self.textBrowser.consel("路径不存在: %s" % (source_path), 'red')
 
     def showTB(self):
-        self.dir_model.setRootPath(os.getenv('TB_HOME'))
+        source_path = os.getenv('TB_HOME')
+        if os.path.exists(source_path):
+            self.treeView_filebrowser.setRootIndex(self.dir_model.index(source_path))
+        else:
+            self.textBrowser.consel("路径不存在: %s" % (source_path), 'red')
 
     def showTableConfig(self):
-        selected_items = self.diag_table.selectedItems()
+        selected_item = self.getSelectedRow();
 
-        # 每行有10个items
-        if len(selected_items) > 12:
-            self.textBrowser.consel("一次只能查询一个测试项的配置！\n", 'red')
-
-        config_name = self.diag_table.item(selected_items[0].row(), 4).text().strip()
+        config_name = self.diag_table.item(selected_item.row(), 4).text().strip()
         with open(os.path.join(os.getcwd(),'config/')+config_name+'.mk', 'r') as file:
             file_contents = file.read()
 
@@ -494,6 +474,15 @@ class MyMainForm(QMainWindow, Ui_smt):
         js_code = "pyqtLoadConfig(\"%s\");" % (file_contents.replace('\n', '\\n'))
         self.web_view.page().runJavaScript(js_code)
         self.showSVGTab()
+
+    def getSelectedRow(self):
+        selected_items = self.diag_table.selectedItems()
+
+        # 每行有10个items
+        if len(selected_items) > 12:
+            self.textBrowser.consel("一次只能查询一个测试项的配置！\n", 'red')
+        
+        return selected_items[0]
 
     def showSVGTab(self):
         self.main_tabWidget.setCurrentIndex(0)

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'ui/uvs.ui'
+# Form implementation generated from reading ui file '../ui/uvs.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.9
 #
@@ -21,7 +21,7 @@ class Ui_smt(object):
         font.setPointSize(10)
         smt.setFont(font)
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("ui/../ico/uvs_white.jpg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap("../ui/../ico/uvs_white.jpg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         smt.setWindowIcon(icon)
         smt.setWindowOpacity(10.0)
         smt.setTabShape(QtWidgets.QTabWidget.Rounded)
@@ -70,7 +70,7 @@ class Ui_smt(object):
         self.broswer_tabWidget.setAutoFillBackground(True)
         self.broswer_tabWidget.setTabPosition(QtWidgets.QTabWidget.South)
         self.broswer_tabWidget.setTabShape(QtWidgets.QTabWidget.Rounded)
-        self.broswer_tabWidget.setTabsClosable(True)
+        self.broswer_tabWidget.setTabsClosable(False)
         self.broswer_tabWidget.setObjectName("broswer_tabWidget")
         self.FileBrowser = QtWidgets.QWidget()
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
@@ -138,7 +138,7 @@ class Ui_smt(object):
         self.main_tabWidget.setFont(font)
         self.main_tabWidget.setContextMenuPolicy(QtCore.Qt.DefaultContextMenu)
         self.main_tabWidget.setTabPosition(QtWidgets.QTabWidget.West)
-        self.main_tabWidget.setTabsClosable(True)
+        self.main_tabWidget.setTabsClosable(False)
         self.main_tabWidget.setMovable(True)
         self.main_tabWidget.setObjectName("main_tabWidget")
         self.svgtab = QtWidgets.QWidget()
@@ -165,7 +165,7 @@ class Ui_smt(object):
         self.scrollArea_svg.setWidgetResizable(True)
         self.scrollArea_svg.setObjectName("scrollArea_svg")
         self.scrollAreaWidgetContents = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 891, 563))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 894, 563))
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -187,7 +187,7 @@ class Ui_smt(object):
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.run = QtWidgets.QPushButton(self.macrotab)
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap("ui/ico/new_doc.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon1.addPixmap(QtGui.QPixmap("../ui/ico/new_doc.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.run.setIcon(icon1)
         self.run.setCheckable(False)
         self.run.setChecked(False)
@@ -496,7 +496,7 @@ class Ui_smt(object):
 
         self.retranslateUi(smt)
         self.broswer_tabWidget.setCurrentIndex(0)
-        self.main_tabWidget.setCurrentIndex(1)
+        self.main_tabWidget.setCurrentIndex(0)
         self.tabWidget_2.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(smt)
 
@@ -506,7 +506,7 @@ class Ui_smt(object):
         self.broswer_tabWidget.setWhatsThis(_translate("smt", "<html><head/><body><p><span style=\" font-weight:600;\">File Browser</span></p></body></html>"))
         self.broswer_tabWidget.setTabText(self.broswer_tabWidget.indexOf(self.FileBrowser), _translate("smt", "File Browser"))
         self.broswer_tabWidget.setTabText(self.broswer_tabWidget.indexOf(self.DesignHierarchy), _translate("smt", "Design Hierarchy"))
-        self.main_tabWidget.setTabText(self.main_tabWidget.indexOf(self.svgtab), _translate("smt", "svgtab"))
+        self.main_tabWidget.setTabText(self.main_tabWidget.indexOf(self.svgtab), _translate("smt", "配置管理"))
         self.run.setToolTip(_translate("smt", "执行选中testcase的指定任务，可多任务并行"))
         self.run.setText(_translate("smt", "运行"))
         self.stopSimuate.setToolTip(_translate("smt", "停止选中的testcase项的执行"))
@@ -537,7 +537,7 @@ class Ui_smt(object):
         self.selectalltc.setToolTip(_translate("smt", "选择全部testcase项"))
         self.selectalltc.setText(_translate("smt", "全选"))
         self.diag_table.setSortingEnabled(True)
-        self.main_tabWidget.setTabText(self.main_tabWidget.indexOf(self.macrotab), _translate("smt", "macrotab"))
+        self.main_tabWidget.setTabText(self.main_tabWidget.indexOf(self.macrotab), _translate("smt", "仿真管理"))
         self.main_tabWidget.setTabText(self.main_tabWidget.indexOf(self.tooltab), _translate("smt", "tooltab"))
         self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.Consel), _translate("smt", "Consel"))
         self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.pewview), _translate("smt", "preview"))
