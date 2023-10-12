@@ -120,14 +120,11 @@ class MutiWorkThread():
             if finishedItem == matchedItem.text():
                 if status:
                     icon = os.path.join(os.path.dirname(__file__), "../ico/check-mark.png")
-                    status_value = self.status_tag["success"]
                 else:
                     icon = os.path.join(os.path.dirname(__file__), "../ico/error.png")
-                    status_value = self.status_tag["fail"]
 
                 statusItem = self.table.item(row, 0)
                 pixmap = QPixmap(icon)
-                statusItem.setText(status_value)
                 statusItem.setIcon(QIcon(pixmap))
 
     def checkProcessStatus(self):
