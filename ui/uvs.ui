@@ -305,6 +305,10 @@
            <pointsize>10</pointsize>
           </font>
          </property>
+         <attribute name="icon">
+          <iconset>
+           <normaloff>ico/process.ico</normaloff>ico/process.ico</iconset>
+         </attribute>
          <attribute name="title">
           <string>配置管理</string>
          </attribute>

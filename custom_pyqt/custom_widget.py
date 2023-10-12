@@ -35,38 +35,41 @@ class QSpinBox(QSpinBox):
 class ColoredTextBrowser(QTextBrowser):
     def __init__(self, parent=None):
         super(ColoredTextBrowser,self).__init__(parent)
-        self.tips()
+        self.last_time = 0
 
     def tips(self):
         # 获取当前文本光标
         cursor = self.textCursor()
-        t = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
 
         # 创建文本字符格式，设置颜色
         char_format = QTextCharFormat()
-
         char_format.setForeground(QColor('blue'))
-        # 在光标处应用字符格式
         cursor.setCharFormat(char_format)
+
         # 插入文本
-        cursor.insertText('[%s]# ' % (t))
+        if self.last_time < time.mktime(time.localtime()):
+            t = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
+            cursor.insertText('<%s>\n' % (t))
+
+    def consel(self, text, color):
+        self.tips()
+
+        # 获取当前文本光标
+        cursor = self.textCursor()
+
+        # 创建文本字符格式，设置颜色
+        char_format = QTextCharFormat()
+        char_format.setForeground(QColor(color))
+        cursor.setCharFormat(char_format)
+
+        for line in text.strip().split('\n'):
+            cursor.insertText(f"> {line} \n")
+
+        self.last_time = time.mktime(time.localtime())
+        ## 恢复默认字符格式
+        #cursor.setCharFormat(QTextCharFormat())
 
         # 每当文本内容更新时，滚动到底部
         cursor.movePosition(QTextCursor.End)
         self.setTextCursor(cursor)
 
-    def consel(self, text, color):
-        # 获取当前文本光标
-        cursor = self.textCursor()
-
-        # 创建文本字符格式，设置颜色
-        char_format = QTextCharFormat()
-
-        char_format.setForeground(QColor(color))
-        cursor.setCharFormat(char_format)
-        cursor.insertText(text+'\n')
-
-        self.tips()
-
-        ## 恢复默认字符格式
-        #cursor.setCharFormat(QTextCharFormat())

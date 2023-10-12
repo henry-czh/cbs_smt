@@ -13,9 +13,11 @@ endif
 
 clean:
 	echo "this is clean task"
+	rm -rf simdir/$(test)
 
 build:
-	echo $(test)
+	mkdir -p simdir/$(test)/flists
+	mkdir -p simdir/$(test)/sim_temp
 	sleep $(delay)
 	$(error)
 	echo "this is build task"

@@ -1,5 +1,8 @@
+#!/bin/env python3
+# _*_ coding: UTF-8 _*_
 import sys
 import os
+import re
 import subprocess
 from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtCore import *
@@ -20,24 +23,31 @@ class WorkerThread(QThread):
             # 等待子进程完成
             return_code = self.process.wait()  # 等待外部进程执行完成
             if return_code == 0:
-                self.finished.emit(f"子进程 {self.command} 执行完成.")  # 发射任务完成信号
+                self.finished.emit(f"[Success] 子进程 {self.command} 执行完成.")  # 发射任务完成信号
             else:
-                self.finished.emit(f"子进程 {self.command} 执行错误, 具体如下:")  # 发射任务完成信号
-                error_info = f"\n子进程 {self.command} 异常退出 (返回码 {return_code}) \n" 
+                self.finished.emit(f"[ERROR] 子进程 {self.command} 执行错误, 详情如下:\n")  # 发射任务完成信号
+                error_info = f" \n子进程 {self.command} 异常退出 (返回码 {return_code}) \n" 
                 # 获取错误信息
                 stderr_output = self.process.stderr.read()
                 if stderr_output:
-                    error_info += f"错误信息: {stderr_output.decode('utf-8')}\n"
+                    error_info += f"错误信息:\n{stderr_output.decode('utf-8')}\n"
 
                 # 获取标准输出信息
                 stdout_output = self.process.stdout.read()
                 if stdout_output:
-                    error_info += f"标准输出信息: {stdout_output.decode('utf-8')}\n"
+                    error_info += f"标准输出信息:\n{stdout_output.decode('utf-8')}\n"
 
                 self.error.emit(error_info)
         except Exception as e:
             # 发射错误信息信号
             self.error.emit(f"任务发布失败: {str(e)}")
+
+    def stop(self):
+        if hasattr(self, "process") and self.process.poll() is None:
+            # 终止 subprocess 进程
+            self.process.terminate()
+            self.process.wait()
+            self.finished.emit(f"[Stopped] 子进程 {self.command} 提前结束.")  # 发射任务完成信号
 
 class MutiWorkThread():
     def __init__(self, table, consol, progressBar):
@@ -47,42 +57,79 @@ class MutiWorkThread():
         self.progressBar = progressBar
         self.finishedTasks = 0
 
-        self.progressBar.setValue(0)
-
     def run(self, cmd):
         # 定义要执行的命令列表，每个元素是一个命令字符串
         self.commands = self.collectCMDs(cmd)
+        
+        if len(self.commands):
+            self.progressBar.setValue(1)
 
         # 存储子进程的 Popen 对象
         self.threads = []
 
         # 启动子进程并存储 Popen 对象
         for command in self.commands:
-            self.thread = WorkerThread(command)
-            self.thread.finished.connect(self.taskFinished)
-            self.thread.error.connect(self.taskError)
-            self.threads.append(self.thread)
-            self.thread.start()
+            thread = WorkerThread(command)
+            thread.finished.connect(self.taskFinished)
+            thread.error.connect(self.taskError)
+            self.threads.append(thread)
+            thread.start()
 
         #self.checkProcessStatus()
+    def stop(self):
+        for thread in self.threads:
+            thread.stop()
 
     def taskFinished(self, testcaseStr):
-        self.consol.consel(testcaseStr, 'black')
+        if '[Success]' in testcaseStr:
+            status = 'green'
+        elif '[Stopped]' in testcaseStr:
+            status = 'bule'
+        else:
+            status = 'red'
+        self.consol.consel(testcaseStr, status)
+
+        self.tagProcessStatus(testcaseStr)
 
         self.finishedTasks = self.finishedTasks + 1
         progress_value = (self.finishedTasks / len(self.threads)) * 100
-        self.progressBar.setValue(progress_value)
+        self.progressBar.setValue(int(progress_value))
 
     def taskError(self, error_info):
         self.consol.consel(error_info, 'red')
 
         self.finishedTasks = self.finishedTasks + 1
         progress_value = (self.finishedTasks / len(self.threads)) * 100
-        self.progressBar.setValue(progress_value)
+        self.progressBar.setValue(int(progress_value))
         style = "QProgressBar::chunk { background-color: yellow; }"  # 设置已完成部分的颜色
+        style += "QProgressBar {border: 2px solid grey; border-radius: 5px; background: lightgrey;}" 
         style += "QProgressBar { text-align: center; }"  # 设置文本居中
         self.progressBar.setStyleSheet(style)
         
+    def tagProcessStatus(self, statusStr):
+        test_pattern = re.compile(r"test=(.+?) ")
+        finishedItem = test_pattern.findall(statusStr)[0]
+
+        if '[Success]' in statusStr:
+            status = True
+        else:
+            status = False 
+
+        for row in range(self.table.rowCount()):
+            matchedItem = self.table.item(row, 2)
+            if finishedItem == matchedItem.text():
+                if status:
+                    icon = os.path.join(os.path.dirname(__file__), "../ico/check-mark.png")
+                    status_value = self.status_tag["success"]
+                else:
+                    icon = os.path.join(os.path.dirname(__file__), "../ico/error.png")
+                    status_value = self.status_tag["fail"]
+
+                statusItem = self.table.item(row, 0)
+                pixmap = QPixmap(icon)
+                statusItem.setText(status_value)
+                statusItem.setIcon(QIcon(pixmap))
+
     def checkProcessStatus(self):
         # 监控每个子进程的状态
         for i, thread in enumerate(self.threads):
@@ -113,7 +160,8 @@ class MutiWorkThread():
             if item.checkState() == Qt.Checked:
                 selected_items.append(self.table.item(row, 2).text())
                 # 创建QPixmap对象并设置图像
-                pixmap = QPixmap(os.path.join(__file__, "../ico/loading.png"))
+                icon = os.path.join(os.path.dirname(__file__), "../ico/loading.png")
+                pixmap = QPixmap(icon)
                 status_item.setIcon(QIcon(pixmap))
 
         return selected_items

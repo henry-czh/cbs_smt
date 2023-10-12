@@ -60,6 +60,8 @@ class MyMainForm(QMainWindow, Ui_smt):
         self.diag_file = os.getenv('DIAG_FILE')
         #self.saveDir = os.path.abspath(os.path.join(os.getcwd(), "../config"))
 
+        self.status_tag = {"null":"null", "exist":"exist", "success":"success", "fail":"fail"}
+
         #+++++++++++++++++++++++++++++++++++++++++++++++++++++
         # Create Console Window
         #+++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -153,6 +155,8 @@ class MyMainForm(QMainWindow, Ui_smt):
         self.diag_table.setSelectionBehavior(QAbstractItemView.SelectRows)
         # 隐藏行序号
         self.diag_table.verticalHeader().setVisible(False)
+        # 连接表头点击信号
+        #self.diag_table.horizontalHeader().sectionClicked.connect(self.onHeaderClicked)
 
         self.fillDataForTable()
 
@@ -244,7 +248,9 @@ class MyMainForm(QMainWindow, Ui_smt):
             for col, cellData in enumerate(rowData):
                 item = QTableWidgetItem(str(cellData))
                 self.diag_table.setItem(row, col+2, item)
-                if col==2 and os.path.exists(os.path.join(os.getcwd(),'simdir',str(cellData))):
+                if col==0:
+                    simdir_path = os.path.join(os.getcwd(),'simdir',str(cellData))
+                if col==0 and os.path.exists(simdir_path):
                     path_exist = True
 
             # 创建一个QCheckBox并将其放入单元格
@@ -256,13 +262,42 @@ class MyMainForm(QMainWindow, Ui_smt):
             # 设置元格Item
             item = QTableWidgetItem()
             if path_exist:
-                pixmap = QPixmap("../ico/approved.png")
+                pixmap = QPixmap("../ico/checkmark.png")
             else:
                 pixmap = QPixmap("../ico/null.png")
             item.setIcon(QIcon(pixmap))
             #item.setBackground(Qt.white)
             self.diag_table.setItem(row, 0, item)
+
             item.setBackground(QColor(255, 255, 255))  # 恢复默认背景颜色
+
+        # 调整列宽以适应内容
+        self.diag_table.resizeColumnsToContents()
+
+    def onHeaderClicked(self, logicalIndex):
+
+        if not logicalIndex in [0,1]:
+            return
+
+        #if logicalIndex:
+        #    # 自定义排序操作，根据复选框的选中状态排序
+        #    rows = self.diag_table.rowCount()
+        #    sorted_rows = sorted(range(rows), key=lambda row: self.diag_table.item(row, 1).checkState())
+        
+        #    new_table_item = []
+
+        #    for new_row, original_row in enumerate(sorted_rows):
+        #        #print(f"{new_row} : {original_row}")
+        #        row_items = []
+        #        for col in range(self.diag_table.columnCount()):
+        #            item = self.diag_table.takeItem(original_row, col)
+        #            row_items.append(item)
+        #        new_table_item.append(row_items)
+        
+        #    for row in range(self.diag_table.rowCount()):
+        #        for col in range(self.diag_table.columnCount()):
+        #            self.diag_table.setItem(row, col, new_table_item[row][col])
+        ##else:
 
     #********************************************************
     # 当diag table发生编辑时，触发相关函数 1. 改变背景颜色；
@@ -289,10 +324,19 @@ class MyMainForm(QMainWindow, Ui_smt):
             # 更新previous_data以反映新的文本
             self.previous_data[row][col-2] = new_text
 
+        # 调整列宽以适应内容
+        self.diag_table.resizeColumnsToContents()
+
     #********************************************************
     # 运行仿真：1. 收集参数；2. 批量处理任务； 3. 收集运行结果；
     #********************************************************
     def runSimulate(self):
+        current_progress = self.progressBar.value()
+        if current_progress > 0 and current_progress < 100:
+            self.textBrowser.consel('上次发布的任务还没有结束，需要发布新任务，请等待或开新的SMT窗口.', 'red')
+            return
+
+        self.progressBar.setStyleSheet("")  # 清空样式表
         cmd = self.collectOpts()
         self.mutiWorkThreads = MutiWorkThread(self.diag_table, self.textBrowser, self.progressBar)
         self.mutiWorkThreads.run(cmd)
@@ -324,13 +368,12 @@ class MyMainForm(QMainWindow, Ui_smt):
         if self.mlCB.isChecked():
             cmd = cmd + 'ml=1 '
         
-        self.textBrowser.consel(cmd, 'black')
         return cmd
     #********************************************************
     # 停止仿真：1. 收集参数；2. 批量处理任务； 3. 收集运行结果；
     #********************************************************
     def stopSimuateFunc(self):
-        self.textBrowser.consel('stop simulate task.', 'black')
+        self.mutiWorkThreads.stop()
 
     #********************************************************
     # 重新加载diag文件
@@ -440,7 +483,7 @@ class MyMainForm(QMainWindow, Ui_smt):
         action_edit.triggered.connect(self.editTableItem)
         action_delete.triggered.connect(self.deleteTableItem)
         action_add.triggered.connect(self.addTableItem)
-        action_run.triggered.connect(self.runTableItem)
+        action_run.triggered.connect(self.runSimulate)
         action_config.triggered.connect(self.showTableConfig)
         action_stimuli.triggered.connect(self.showSource)
         action_testbench.triggered.connect(self.showTB)
@@ -461,6 +504,8 @@ class MyMainForm(QMainWindow, Ui_smt):
 
     def showSource(self):
         selected_item = self.getSelectedRow();
+        if not selected_item:
+            return
 
         path = self.diag_table.item(selected_item.row(), 3).text().strip()
         source_path = os.path.join(os.getcwd(), 'src/c', path)
@@ -472,6 +517,8 @@ class MyMainForm(QMainWindow, Ui_smt):
 
     def showSimdir(self):
         selected_item = self.getSelectedRow();
+        if not selected_item:
+            return
 
         path = self.diag_table.item(selected_item.row(), 3).text().strip()
         source_path = os.path.join(os.getcwd(), 'simdir', path)
@@ -496,10 +543,17 @@ class MyMainForm(QMainWindow, Ui_smt):
 
     def showTableConfig(self):
         selected_item = self.getSelectedRow();
+        if not selected_item:
+            return
 
         config_name = self.diag_table.item(selected_item.row(), 4).text().strip()
-        with open(os.path.join(os.getcwd(),'config/')+config_name+'.mk', 'r') as file:
-            file_contents = file.read()
+        config_file = os.path.join(os.getcwd(),'config/')+config_name+'.mk'
+        if os.path.exists(config_file):
+            with open(config_file, 'r') as file:
+                file_contents = file.read()
+        else:
+            self.textBrowser.consel('该测试项对应的配置文件不存在!', 'red')
+            return
 
         # 在这里触发执行Web页面中的JavaScript函数
         js_code = "pyqtLoadConfig(\"%s\");" % (file_contents.replace('\n', '\\n'))
@@ -508,6 +562,8 @@ class MyMainForm(QMainWindow, Ui_smt):
 
     def getSelectedRow(self):
         selected_items = self.diag_table.selectedItems()
+        if not selected_items:
+            return
 
         # 每行有10个items
         if len(selected_items) > 12:
@@ -516,6 +572,10 @@ class MyMainForm(QMainWindow, Ui_smt):
         return selected_items[0]
 
     def showSVGTab(self):
+        selected_item = self.getSelectedRow();
+        if not selected_item:
+            return
+
         self.main_tabWidget.setCurrentIndex(0)
         
     def editTableItem(self):
@@ -535,17 +595,6 @@ class MyMainForm(QMainWindow, Ui_smt):
             # 从previous_data中删除相应的行
             del self.previous_data[row]
             self.diag_table.removeRow(row)
-
-    def runTableItem(self):
-        selected_rows = set()
-        for item in self.diag_table.selectedItems():
-            selected_rows.add(item.row())
-
-        if not selected_rows:
-            self.textBrowser.consel("没有选中的项，运行取消.", 'yellow')
-
-        for row in selected_rows:
-            self.runSingle(self.diag_table.item(row,2).text())
 
     def addTableItem(self):
         # 新增一行并复制当前选中的行

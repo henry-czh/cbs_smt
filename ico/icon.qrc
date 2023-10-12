@@ -12,11 +12,49 @@
     <file>coda.png</file>
     <file>diskette.png</file>
     <file>download.ico</file>
+    <file>checkmark.png</file>
     <file>install.png</file>
     <file>loading.png</file>
     <file>null.png</file>
     <file>pause.png</file>
     <file>play-button.png</file>
     <file>select-all.png</file>
+  </qresource>
+  <qresource prefix="./ico">
+    <file>process.ico</file>
+    <file>approved.png</file>
+    <file>cancel.png</file>
+    <file>cbs48.ico</file>
+    <file>cbs64.ico</file>
+    <file>cbs-m.png</file>
+    <file>cbs-m32.ico</file>
+    <file>check-mark.png</file>
+    <file>checkmark.png</file>
+    <file>coda.png</file>
+    <file>diskette.png</file>
+    <file>download.ico</file>
+    <file>equalizer.ico</file>
+    <file>error.png</file>
+    <file>folder-download.png</file>
+    <file>folder-upload.png</file>
+    <file>install.png</file>
+    <file>loading.png</file>
+    <file>lock.png</file>
+    <file>new_doc.png</file>
+    <file>note_accept.ico</file>
+    <file>null.png</file>
+    <file>pause.png</file>
+    <file>play-button.png</file>
+    <file>prize_winner.ico</file>
+    <file>process.ico</file>
+    <file>process_accept.ico</file>
+    <file>refresh.ico</file>
+    <file>search_page.ico</file>
+    <file>select-all.png</file>
+    <file>terminal.png</file>
+    <file>tools.ico</file>
+    <file>trash_can.ico</file>
+    <file>uvs_pra.jpg</file>
+    <file>uvs_white.jpg</file>
   </qresource>
 </RCC>
